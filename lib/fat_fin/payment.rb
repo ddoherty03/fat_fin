@@ -48,5 +48,29 @@ module FatFin
         amount * ((1.0 + rate_per_period)**periods)
       end
     end
+
+    def value_on_prime(on_date = Date.today, rate: BigDecimal('0.1'), freq: 1)
+      # rate = rate
+      on_date = Date.ensure_date(on_date)
+
+      # Check frq for sanity
+      unless [1, 2, 3, 4, 6, 12].include?(freq)
+        raise ArgumentError, "Compounding frequency (#{freq}) must be a divisor of 12."
+      end
+
+      # Number of years between Payment's date and the date on which discouted
+      # value is being measured.
+      years = on_date.month_diff(date) / 12.0
+
+      # Compund interest, accumulate interest freq times per year
+      periods = years * freq
+      # Rate per period
+      rate_per_period = rate / freq
+
+      # This is the derivative of the value_on (NPV) of amount with respect to
+      # rate.  It will be used in improving guesses using the Newton-Raphson
+      # interation in the IRR calculation.
+      ((periods - 1) * amount) * (1 + rate_per_period)**(periods - 1)
+    end
   end
 end
