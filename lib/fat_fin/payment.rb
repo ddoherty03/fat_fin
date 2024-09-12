@@ -4,8 +4,8 @@ module FatFin
 
     attr_reader :date, :amount
 
-    def initialize(amount = BigDecimal('0.0'), date: Date.today)
-      @amount = amount.to_d
+    def initialize(amount = 0.0, date: Date.today)
+      @amount = amount
       @date = Date.ensure_date(date)
     end
 
@@ -21,7 +21,6 @@ module FatFin
     # year the interest is to be compounded.  For simple interest, give a
     # frequency, *freq* of 0.  By default, the frequency is 1.
     def value_on(on_date = Date.today, rate: BigDecimal('0.1'), freq: 1)
-      rate = rate.to_d
       on_date = Date.ensure_date(on_date)
 
       # Check frq for sanity
