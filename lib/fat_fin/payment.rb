@@ -22,7 +22,7 @@ module FatFin
     # give a frequency, *freq* of 0.  By default, the frequency is 1.  This
     # works equally well for computing a future value of this Payment if the
     # on_date is later than the Payment's date.'
-    def value_on(on_date = Date.today, rate: BigDecimal('0.1'), freq: 1)
+    def value_on(on_date = Date.today, rate: 0.1, freq: 1)
       on_date = Date.ensure_date(on_date)
 
       # Check frq for sanity
@@ -53,7 +53,7 @@ module FatFin
 
     # Return the /derivative/ of the net present value of the Payment as of
     # the given date, using the given rate and compunding frequency.
-    def value_on_prime(on_date = Date.today, rate: BigDecimal('0.1'), freq: 1)
+    def value_on_prime(on_date = Date.today, rate: 0.1, freq: 1)
       # rate = rate
       on_date = Date.ensure_date(on_date)
 

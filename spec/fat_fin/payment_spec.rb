@@ -7,7 +7,7 @@ module FatFin
     let(:eps) { 0.00001 }
 
     it 'initializes a Payment' do
-      expect(pmt.amount).to eq(BigDecimal('45000.33'))
+      expect(pmt.amount).to eq(45000.33)
       expect(pmt.date).to eq(Date.parse('2022-11-16'))
     end
 

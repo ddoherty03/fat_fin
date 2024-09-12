@@ -20,20 +20,20 @@ module FatFin
 
     # Return the net present value of the CashFlow as of the given date, using
     # the given rate and compunding frequency.
-    def value_on(on_date = payments.first&.date || Date.today, rate: BigDecimal('0.1'), freq: 1)
-      payments.sum(BigDecimal('0.0')) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
+    def value_on(on_date = payments.first&.date || Date.today, rate: 0.1, freq: 1)
+      payments.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
     end
 
     # Return the /derivative/ of the net present value of the CashFlow as of
     # the given date, using the given rate and compunding frequency.
-    def value_on_prime(on_date = payments.first&.date || Date.today, rate: BigDecimal('0.1'), freq: 1)
-      payments.sum(BigDecimal('0.0')) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
+    def value_on_prime(on_date = payments.first&.date || Date.today, rate: 0.1, freq: 1)
+      payments.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
     end
 
     # Compute the internal rate of return (IRR) for the CashFlow using the
     # Newton-Raphson method and always assuming annual compounding.
     def irr(eps = 0.000001, verbose: false)
-      return BigDecimal('0.0') if payments.empty?
+      return 0.0 if payments.empty?
 
       first_date = payments.first&.date || Date.today
       try_irr = 0.5
