@@ -11,21 +11,28 @@ module FatFin
       raise ArgumentError, "All CashFlow components must be Payments"
     end
 
+    # Add a new Payment to an existing CashFlow.
     def add_payment(pmt)
       raise ArgumentError, "CashFlow component must be Payment" unless pmt.is_a?(FatFin::Payment)
 
       @payments << pmt
     end
 
+    # Return the net present value of the CashFlow as of the given date, using
+    # the given rate and compunding frequency.
     def value_on(on_date = payments.first&.date || Date.today, rate: BigDecimal('0.1'), freq: 1)
       payments.sum(BigDecimal('0.0')) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
     end
 
+    # Return the /derivative/ of the net present value of the CashFlow as of
+    # the given date, using the given rate and compunding frequency.
     def value_on_prime(on_date = payments.first&.date || Date.today, rate: BigDecimal('0.1'), freq: 1)
       payments.sum(BigDecimal('0.0')) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
     end
 
     def irr(eps = 0.000000001)
+    # Compute the internal rate of return (IRR) for the CashFlow using the
+    # Newton-Raphson method and always assuming annual compounding.
       return BigDecimal('0.0') if payments.empty?
 
       first_date = payments.first&.date || Date.today

@@ -13,13 +13,15 @@ module FatFin
       "Pmt[#{@amount} @ #{@date}]"
     end
 
-    # Return the value of this Payment on a given date, *on_date*, assuming an
-    # /annual/ interest rate of *rate*, expressed as a decimal.  Thus, an 8%
-    # per-year interest rate would be given as 0.08.  If compounding at a
-    # frequency of more than once per year is wanted, include a *freq*
-    # parameter that is an even divisor of 12 to indicate how many times per
-    # year the interest is to be compounded.  For simple interest, give a
-    # frequency, *freq* of 0.  By default, the frequency is 1.
+    # Return the net present value (NPV) of this Payment on a given date,
+    # *on_date*, assuming an /annual/ interest rate of *rate*, expressed as a
+    # decimal.  Thus, an 8% per-year interest rate would be given as 0.08.  If
+    # compounding at a frequency of more than once per year is wanted, include
+    # a *freq* parameter that is an even divisor of 12 to indicate how many
+    # times per year the interest is to be compounded.  For simple interest,
+    # give a frequency, *freq* of 0.  By default, the frequency is 1.  This
+    # works equally well for computing a future value of this Payment if the
+    # on_date is later than the Payment's date.'
     def value_on(on_date = Date.today, rate: BigDecimal('0.1'), freq: 1)
       on_date = Date.ensure_date(on_date)
 
@@ -49,6 +51,8 @@ module FatFin
       end
     end
 
+    # Return the /derivative/ of the net present value of the Payment as of
+    # the given date, using the given rate and compunding frequency.
     def value_on_prime(on_date = Date.today, rate: BigDecimal('0.1'), freq: 1)
       # rate = rate
       on_date = Date.ensure_date(on_date)
