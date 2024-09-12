@@ -39,11 +39,12 @@ module FatFin
 
       def last_of_feb?
         return false unless month == 2
-        if is_leap?
-          day == 29 ? true : false
-        else
-          day == 28 ? true : false
-        end
+
+        day == if is_leap?
+                 29
+               else
+                 28
+               end
       end
 
       def last_of_month?
