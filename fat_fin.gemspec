@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.authors = ["Daniel E. Doherty"]
   spec.email = ["ded@ddoherty.net"]
 
-  spec.summary = "TODO: Write a short summary, because RubyGems requires one."
-  spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = "TODO: Put your gem's website or public repo URL here."
+  spec.summary = "Library for some financial calculations."
+  spec.description = "Some financial classes and methods, including aperiodic IRR from arbitrary cash flows."
+  spec.homepage = "https://github.com/ddoherty03/fat_fin/wiki"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
 
