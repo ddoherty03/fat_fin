@@ -14,4 +14,5 @@ module FatFin
 
   require 'core_ext/date'
   require 'fat_fin/payment'
+  require 'fat_fin/cash_flow'
 end
