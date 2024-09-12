@@ -31,9 +31,13 @@ module FatFin
       expect(flow.value_on(flow.payments.first.date, rate: 0.05)).to be_within(eps).of(1722.37916)
     end
 
-    it 'computes irr' do
-      irr = flow.irr(eps)
+    it 'computes IRR' do
+      # expect(flow.irr(0.000000000001, verbose: true)).to be_within(eps).of(0.1702)
       expect(flow.irr(eps)).to be_within(eps).of(0.1702)
+    end
+
+    it 'computes empty Flow IRR' do
+      expect(mt_flow.irr(eps)).to be_within(eps).of(0.0)
     end
   end
 end
