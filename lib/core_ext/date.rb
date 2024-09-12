@@ -1,22 +1,26 @@
+# frozen_string_literal: true
+
 module FatFin
+  # Extend the Date class with month_diff and related methods for use in
+  # month-basaed financial calulations.
   module DateExtension
     refine Date do
-      def month_diff(d, whole = false)
-        case d
+      def month_diff(other_date, whole: false)
+        case other_date
         when Date
           # Put dates in d0, d1 order
-          if self < d
+          if self < other_date
             k = -1
             d0 = self
-            d1 = d
+            d1 = other_date
           else
             k = 1
-            d0 = d
+            d0 = other_date
             d1 = self
           end
           # If both dates are last of month, return only
           # whole months
-          whole = true if last_of_month? && d.last_of_month?
+          whole = true if last_of_month? && other_date.last_of_month?
 
           # Count number of years
           m = (d1.year - d0.year) * 12
@@ -28,23 +32,19 @@ module FatFin
         end
       end
 
-      def whole_month_diff(d)
-        month_diff(d, true)
+      def whole_month_diff(other_date)
+        month_diff(other_date, true)
       end
 
-      def is_leap?
+      def leap?
         y = year
-        (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
+        ((y % 4).zero? && !(y % 100).zero?) || (y % 400).zero?
       end
 
       def last_of_feb?
         return false unless month == 2
 
-        day == if is_leap?
-                 29
-               else
-                 28
-               end
+        leap? ? 29 : 28
       end
 
       def last_of_month?

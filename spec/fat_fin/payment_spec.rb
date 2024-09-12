@@ -1,4 +1,4 @@
-require "fat_fin"
+# frozen_string_literal: true
 
 module FatFin
   describe Payment do

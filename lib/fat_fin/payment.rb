@@ -1,4 +1,11 @@
+# frozen_string_literal: true
+
 module FatFin
+  # This class represents an amount of money paid on a given date.  If the
+  # amount is negative, the amount was paid out, if positive, it was paid in.
+  # This class provides a method for computing the value of the amount as of
+  # some given date at a given rate and a given compunding frequency.  It can
+  # be used for both discounting back in time of forward in time.
   class Payment
     using DateExtension
 

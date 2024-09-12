@@ -5,10 +5,11 @@ require "debug"
 require "date"
 require "fat_core/all"
 require "fat_core/date"
-require "bigdecimal/util"
 
 require_relative "fat_fin/version"
 
+# Namespace module for the financial classes and methods implemented in this
+# library.
 module FatFin
   class Error < StandardError; end
 

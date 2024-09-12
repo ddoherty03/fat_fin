@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FatFin
   # This class represents a stream of payments made at arbitrary dates, not
   # necessarily evenly spaced.
@@ -43,7 +45,10 @@ module FatFin
 
         npv_prime = value_on_prime(first_date, rate: try_irr, freq: 1)
         new_irr = try_irr - npv / npv_prime
-        printf "Iter: %d, Guess: %4.8f; NPV: %4.12f; NPV': %4.12f\n", iters, try_irr, npv, npv_prime if verbose
+        if verbose
+          printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
+                 iters, try_irr, npv, npv_prime
+        end
         if (new_irr - try_irr).abs <= eps
           puts "Guess not changing: we're done'" if verbose
           break
@@ -51,7 +56,10 @@ module FatFin
         try_irr = new_irr
         iters += 1
       end
-      printf "Iter: %d; Guess: %4.4f; NPV: %4.12f; NPV': %4.12f\n", iters, try_irr, npv, npv_prime if verbose
+      if verbose
+        printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
+               iters, try_irr, npv, npv_prime
+      end
       try_irr
     end
   end
