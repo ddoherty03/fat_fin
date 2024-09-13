@@ -60,18 +60,70 @@ to an earlier date with a different interest rate, 6% this time.
 #+end_example
 
 If no rate is given a 10% rate is (arbitrarily) used and if no date is given,
-it uses its own date:
+it uses its own date.  Here's how the value progresses through time:
 #+begin_src ruby
-    [[tv1.date.iso, '2024-09-12', '2020-05-16'],
-    [tv1.value_on,
-     tv1.value_on('2024-09-12'),
-    tv1.value_on('2020-05-16')]]
+  [['2024-09-12', tv1.date.iso, '2020-05-16'],
+  [tv1.value_on('2024-09-12'),
+   tv1.value_on,
+   tv1.value_on('2020-05-16')]
+  ]
 #+end_src
 
 #+begin_example
-|         2021-04-18 |        2024-09-12 |         2020-05-16 |
-| 34577.223560411374 | 34568.07043490467 | 22896.376327119215 |
+|        2024-09-12 |         2021-04-18 |         2020-05-16 |
+| 34568.07043490467 | 34577.223560411374 | 22896.376327119215 |
 #+end_example
+
+Besides varying the valuation date and the rate used, the ~#value_on~ method
+also allows you to optionally specify the number of compounding periods per
+year with the ~freq:~ parameter.  I use the ~#commas~ method from my
+~fat_core~ gem here to make the numbers more readable.
+#+begin_src ruby
+  [[0, 1, 2, 3, 4, 6, 12, :cont],
+  [
+    tv1.value_on('2024-09-12', freq: 0).commas(2),
+    tv1.value_on('2024-09-12', freq: 1).commas(2),
+    tv1.value_on('2024-09-12', freq: 2).commas(2),
+    tv1.value_on('2024-09-12', freq: 3).commas(2),
+    tv1.value_on('2024-09-12', freq: 4).commas(2),
+    tv1.value_on('2024-09-12', freq: 6).commas(2),
+    tv1.value_on('2024-09-12', freq: 12).commas(2),
+    tv1.value_on('2024-09-12', freq: :cont).commas(2),
+  ]]
+#+end_src
+
+#+begin_example
+|         0 |         1 |         2 |         3 |         4 |         6 |        12 |     :cont |
+| 33,500.00 | 34,568.07 | 34,835.92 | 34,929.51 | 34,977.16 | 35,025.40 | 35,074.24 | 35,123.69 |
+#+end_example
+
+The frequency must evenly divide 12:
+
+#+begin_src ruby
+  tv1.value_on('2024-09-12', freq: 5)
+#+end_src
+
+#+begin_example
+ArgumentError: Frequency (5) must be a divisor of 12 or :cont.
+#+end_example
+
+But what about the other two frequencies, 0 and :cont?  A frequency of 0 is
+taken as a request to use simple interest.  That means that not only does
+interest compound yearly or many times a year, but that it /does not compound
+at all/.  Simple interest of 10% for three years amounts to 30% (10% * 3),
+while the same interest compounded annually works out closer to 33.1% ($(1 + 0.1)^3
+= 1.1^3 = 1.331$)
+
+As for the special frequency represented by the symbol ~:cont~, it goes to the
+opposite extreme: compounding continuously.  Though compounding 12 times per
+year results in a higher rate than compounding 2 times per year, more frequent
+compounding settles to a limit represented by the exponential function.  That
+is, compounding a 10% annual rate continuously for 3 years works out to around
+34.986%, given by the formula $e^rt$ where $r$ is the annual interest rate and
+$t$ is the number of years interest: $e^(0.1 * 3) = e^(0.3) = 1.34985880758$.
+
+*** Cumulative Annual Growth Rate---"CAGR"---and the #cagr method
+One measure of how well
 
 *  Development
 
