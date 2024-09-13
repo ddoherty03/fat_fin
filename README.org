@@ -38,7 +38,6 @@ If no date is given, it uses the ~Date.today~ as its date.
   tv1 = FatFin::TimeValue.new(25_000.00, date: '2021-04-18')
 #+end_src
 
-#+RESULTS:
 : #<FatFin::TimeValue:0x000078024fe32c58 @amount=25000.0, @date=Sun, 18 Apr 2021>
 
 Once created, you can get its time-value as of any other date at any assumed
@@ -48,7 +47,6 @@ value after more than two year.
   tv1.value_on('2024-09-12', rate: 0.05)
 #+end_src
 
-#+RESULTS:
 : 29510.979573836776
 
 The same ~value_on~ method works equally well for discounting the value back
@@ -57,7 +55,6 @@ to an earlier date with a different interest rate, 6% this time.
   tv1.value_on('2020-05-16', rate: 0.06)
 #+end_src
 
-#+RESULTS:
 #+begin_example
 23692.035645041837
 #+end_example
