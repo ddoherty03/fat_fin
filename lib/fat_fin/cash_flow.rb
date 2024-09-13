@@ -71,19 +71,14 @@ module FatFin
         new_irr = try_irr - npv / npv_prime
         if verbose
           printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
-                 { iters:, try_irr:, npv:, npv_prime: }
+                 { iters: iters, try_irr: try_irr, npv: npv, npv_prime: npv_prime }
         end
-        if (new_irr - try_irr).abs <= eps
-          puts "Guess not changing: we're done'" if verbose
-          break
-        end
+        break if (new_irr - try_irr).abs <= eps
+
         try_irr = new_irr
         iters += 1
       end
-      if verbose
-        printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
-               { iters:, try_irr:, npv: npv || 0.0, npv_prime: npv_prime || Float::NAN }
-      end
+      puts "--------------------" if verbose
       try_irr
     end
   end
