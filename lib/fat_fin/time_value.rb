@@ -20,6 +20,12 @@ module FatFin
       "TV[#{@amount} @ #{@date}]"
     end
 
+    # Check frq for sanity.  It must be an even divisior of 12 or the symbol
+    # :cont to indicate continuos compounding.
+    def valid_freq?(frq)
+      [0, 1, 2, 3, 4, 6, 12, :cont].include?(frq)
+    end
+
     # Return the net present value (NPV) of this TimeValue on a given date,
     # *on_date*, assuming an /annual/ interest rate of *rate*, expressed as a
     # decimal.  Thus, an 8% per-year interest rate would be given as 0.08.  If
@@ -32,17 +38,17 @@ module FatFin
     def value_on(on_date = Date.today, rate: 0.1, freq: 1)
       on_date = Date.ensure_date(on_date)
 
-      # Check frq for sanity
-      unless [0, 1, 2, 3, 4, 6, 12].include?(freq)
-        raise ArgumentError, "Compounding frequency (#{freq}) must be a divisor of 12."
-      end
+      raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
 
       # Number of years between TimeValue's date and the date on which discouted
       # value is being measured.
       years = on_date.month_diff(date) / 12.0
 
       # Now the calculation
-      if freq.zero?
+      if freq == :cont
+        # Continuous compounding
+        amount * Math.exp(rate * years)
+      elsif freq.zero?
         # Simple interest, just rate times number of years
         if years >= 0
           amount * (1.0 + (rate * years))
