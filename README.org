@@ -1,17 +1,20 @@
-# FatFin
+#+TITLE: FatFin Guide
+#+OPTIONS: toc:4
+#+PROPERTY: header-args:ruby :colnames no :session readme :hlines yes :exports both :wrap example
+#+PROPERTY: header-args:sh :exports code
 
 * Installation
 
 Install the gem and add to the application's Gemfile by executing:
 
 #+begin_src sh
-  $ $bundle add fat_fin
+  $ bundle add fat_fin
 #+end_src
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
 #+begin_src sh
-  $ $gem install fat_fin
+  $ gem install fat_fin
 #+end_src
 
 * Usage
@@ -22,7 +25,7 @@ calculations dealing with the time-value of money.  It's base class is
 ~TimeValue~ which provides for creation of money values tied to a particular
 date.
 
-#+begin_src ruby :session readme
+#+begin_src ruby
   require 'bundler/setup'
   require 'fat_fin'
 #+end_src
@@ -35,10 +38,13 @@ If no date is given, it uses the ~Date.today~ as its date.
   tv1 = FatFin::TimeValue.new(25_000.00, date: '2021-04-18')
 #+end_src
 
+#+RESULTS:
+: #<FatFin::TimeValue:0x000078024fe32c58 @amount=25000.0, @date=Sun, 18 Apr 2021>
+
 Once created, you can get its time-value as of any other date at any assumed
 interest rate.  For example, at a 5% rate, here is how you would find its
 value after more than two year.
-#+begin_src ruby :session readme
+#+begin_src ruby
   tv1.value_on('2024-09-12', rate: 0.05)
 #+end_src
 
@@ -47,16 +53,18 @@ value after more than two year.
 
 The same ~value_on~ method works equally well for discounting the value back
 to an earlier date with a different interest rate, 6% this time.
-#+begin_src ruby :session readme
+#+begin_src ruby
   tv1.value_on('2020-05-16', rate: 0.06)
 #+end_src
 
 #+RESULTS:
-: 23692.035645041837
+#+begin_example
+23692.035645041837
+#+end_example
 
 If no rate is given a 10% rate is (arbitrarily) used and if no date is given,
 it uses its own date:
-#+begin_src ruby :session readme
+#+begin_src ruby
     [[tv1.date.iso, '2024-09-12', '2020-05-16'],
     [tv1.value_on,
      tv1.value_on('2024-09-12'),
@@ -64,8 +72,10 @@ it uses its own date:
 #+end_src
 
 #+RESULTS:
+#+begin_example
 |         2021-04-18 |        2024-09-12 |         2020-05-16 |
 | 34577.223560411374 | 34568.07043490467 | 22896.376327119215 |
+#+end_example
 
 *  Development
 
