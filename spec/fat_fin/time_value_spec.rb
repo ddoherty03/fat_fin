@@ -84,6 +84,38 @@ module FatFin
       end
     end
 
+    describe "#cagr" do
+      it "computes cagr with default frequency 1" do
+        expect(fut_tv.cagr(tv)).to be_within(eps).of(0.10)
+      end
+
+      it "computes cagr with frequency 2" do
+        expect(fut_tv.cagr(tv, freq: 2)).to be_within(eps).of(0.097617704)
+      end
+
+      it "computes cagr with frequency 3" do
+        expect(fut_tv.cagr(tv, freq: 3)).to be_within(eps).of(0.09684035)
+      end
+
+      it "computes cagr with frequency 4" do
+        expect(fut_tv.cagr(tv, freq: 4)).to be_within(eps).of(0.09645476)
+      end
+
+      it "computes cagr with frequency 6" do
+        expect(fut_tv.cagr(tv, freq: 6)).to be_within(eps).of(0.09607121)
+      end
+
+      it "computes cagr with frequency 12" do
+        expect(fut_tv.cagr(tv, freq: 12)).to be_within(eps).of(0.09568969)
+      end
+
+      it "computes cagr with continuous compunding" do
+        expect(fut_tv.cagr(tv, freq: :cont)).to be_within(eps).of(0.09531018)
+      end
+
+      it "computes cagr with simple interest, no compunding" do
+        expect(fut_tv.cagr(tv, freq: 0)).to be_within(eps).of(0.10564795)
+      end
     end
   end
 end

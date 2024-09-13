@@ -89,5 +89,22 @@ module FatFin
       # interation in the IRR calculation.
       ((periods - 1) * amount) * (1 + rate_per_period)**(periods - 1)
     end
+
+    # Compute the "compound annual growth rate" that would have been required
+    # to arrive at this TimeValue from the given from_tv, where the rate is
+    # compounded freq times per year.
+    def cagr(from_tv, freq: 1)
+      raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
+
+      years = date.month_diff(from_tv.date) / 12.0
+      if freq == :cont
+        Math.log(amount / from_tv.amount) / years
+      elsif freq.zero?
+        ((amount / from_tv.amount) - 1.0) / years
+      else
+        periods = freq * years
+        freq * ((amount / from_tv.amount)**(1 / periods) - 1.0)
+      end
+    end
   end
 end
