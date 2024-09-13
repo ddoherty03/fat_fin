@@ -11,7 +11,7 @@ module FatFin
 
     attr_reader :date, :amount
 
-    def initialize(amount = 0.0, date: Date.today)
+    def initialize(amount, date: Date.today)
       @amount = amount
       @date = Date.ensure_date(date)
     end
@@ -35,7 +35,7 @@ module FatFin
     # give a frequency, *freq* of 0.  By default, the frequency is 1.  This
     # works equally well for computing a future value of this TimeValue if the
     # on_date is later than the TimeValue's date.'
-    def value_on(on_date = Date.today, rate: 0.1, freq: 1)
+    def value_on(on_date = date || Date.today, rate: 0.1, freq: 1)
       on_date = Date.ensure_date(on_date)
 
       raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
