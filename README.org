@@ -1,0 +1,88 @@
+# FatFin
+
+* Installation
+
+Install the gem and add to the application's Gemfile by executing:
+
+#+begin_src sh
+  $ $bundle add fat_fin
+#+end_src
+
+If bundler is not being used to manage dependencies, install the gem by executing:
+
+#+begin_src sh
+  $ $gem install fat_fin
+#+end_src
+
+* Usage
+
+** The TimeValue class
+This gem, ~fat_fin~, defines classes for dealing with certain financial
+calculations dealing with the time-value of money.  It's base class is
+~TimeValue~ which provides for creation of money values tied to a particular
+date.
+
+#+begin_src ruby :session readme
+  require 'bundler/setup'
+  require 'fat_fin'
+#+end_src
+
+A new ~TimeValue~ needs an amount and, optionally, a date to be initialized.
+If no date is given, it uses the ~Date.today~ as its date.
+
+*** Get values on different dates with #value_on
+#+begin_src ruby :session readme
+  tv1 = FatFin::TimeValue.new(25_000.00, date: '2021-04-18')
+#+end_src
+
+Once created, you can get its time-value as of any other date at any assumed
+interest rate.  For example, at a 5% rate, here is how you would find its
+value after more than two year.
+#+begin_src ruby :session readme
+  tv1.value_on('2024-09-12', rate: 0.05)
+#+end_src
+
+#+RESULTS:
+: 29510.979573836776
+
+The same ~value_on~ method works equally well for discounting the value back
+to an earlier date with a different interest rate, 6% this time.
+#+begin_src ruby :session readme
+  tv1.value_on('2020-05-16', rate: 0.06)
+#+end_src
+
+#+RESULTS:
+: 23692.035645041837
+
+If no rate is given a 10% rate is (arbitrarily) used and if no date is given,
+it uses its own date:
+#+begin_src ruby :session readme
+    [[tv1.date.iso, '2024-09-12', '2020-05-16'],
+    [tv1.value_on,
+     tv1.value_on('2024-09-12'),
+    tv1.value_on('2020-05-16')]]
+#+end_src
+
+#+RESULTS:
+|         2021-04-18 |        2024-09-12 |         2020-05-16 |
+| 34577.223560411374 | 34568.07043490467 | 22896.376327119215 |
+
+*  Development
+
+After checking out the repo, run `bin/setup` to install dependencies. Then,
+run `rake spec` to run the tests. You can also run `bin/console` for an
+interactive prompt that will allow you to experiment.
+
+To install this gem onto your local machine, run `bundle exec rake
+install`. To release a new version, update the version number in `version.rb`,
+and then run `bundle exec rake release`, which will create a git tag for the
+version, push git commits and the created tag, and push the `.gem` file to
+[rubygems.org](https://rubygems.org).
+
+* Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/ddoherty03/fat_fin.
+
+*  License
+
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
