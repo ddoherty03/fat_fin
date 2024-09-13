@@ -52,13 +52,16 @@ module FatFin
 
       first_date = payments.first&.date || Date.today
       try_irr = guess
-      iters = 0
+      sign_flipped = false
+      iters = 1
       while (npv = value_on(first_date, rate: try_irr, freq: 1)).abs > eps
         return Float::NAN if iters > 100
-        if npv.is_a?(Complex)
+
+        if npv.is_a?(Complex) && !sign_flipped
           # If we get a Complex npv, flip the sign of the guess and start
-          # over.
+          # over.  But only try this onece.
           try_irr = -guess
+          sign_flipped = true
           next
         end
 
