@@ -37,10 +37,18 @@ module FatFin
       payments.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
     end
 
+    # IRR cannot be computed unless the CashFlow has at least one positive and
+    # one negative value.  This tests for that.
+    def mixed_signs?
+      pos, neg = payments.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
+      pos.size >= 1 && neg.size >= 1
+    end
+
     # Compute the internal rate of return (IRR) for the CashFlow using the
     # Newton-Raphson method and always assuming annual compounding.
     def irr(eps = 0.000001, guess: 0.5, verbose: false)
       return 0.0 if payments.empty?
+      return Float::NAN unless mixed_signs?
 
       first_date = payments.first&.date || Date.today
       try_irr = guess
