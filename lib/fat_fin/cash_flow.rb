@@ -18,6 +18,11 @@ module FatFin
       raise ArgumentError, "CashFlow component must be Payment" unless pmt.is_a?(FatFin::Payment)
 
       @payments << pmt
+      self
+    end
+
+    def <<(pmt)
+      add_payment(pmt)
     end
 
     # Return the net present value of the CashFlow as of the given date, using
