@@ -14,6 +14,6 @@ module FatFin
   class Error < StandardError; end
 
   require "core_ext/date"
-  require "fat_fin/payment"
+  require "fat_fin/time_value"
   require "fat_fin/cash_flow"
 end

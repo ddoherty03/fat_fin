@@ -4,53 +4,53 @@ module FatFin
   # This class represents a stream of payments made at arbitrary dates, not
   # necessarily evenly spaced.
   class CashFlow
-    attr_accessor :payments
+    attr_accessor :time_values
 
-    def initialize(payments = [])
-      @payments = payments.to_a
-      return if @payments.all? { |pmt| pmt.is_a?(FatFin::Payment) }
+    def initialize(time_values = [])
+      @time_values = time_values.to_a
+      return if @time_values.all? { |tv| tv.is_a?(FatFin::TimeValue) }
 
-      raise ArgumentError, "All CashFlow components must be Payments"
+      raise ArgumentError, "All CashFlow components must be TimeValues"
     end
 
     # Add a new Payment to an existing CashFlow.
-    def add_payment(pmt)
-      raise ArgumentError, "CashFlow component must be Payment" unless pmt.is_a?(FatFin::Payment)
+    def add_time_value(tval)
+      raise ArgumentError, "CashFlow component must be a TimeValue" unless tval.is_a?(FatFin::TimeValue)
 
-      @payments << pmt
+      @time_values << tval
       self
     end
 
-    def <<(pmt)
-      add_payment(pmt)
+    def <<(tval)
+      add_time_value(tval)
     end
 
     # Return the net present value of the CashFlow as of the given date, using
     # the given rate and compunding frequency.
-    def value_on(on_date = payments.first&.date || Date.today, rate: 0.1, freq: 1)
-      payments.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
+    def value_on(on_date = time_values.first&.date || Date.today, rate: 0.1, freq: 1)
+      time_values.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
     end
 
     # Return the /derivative/ of the net present value of the CashFlow as of
     # the given date, using the given rate and compunding frequency.
-    def value_on_prime(on_date = payments.first&.date || Date.today, rate: 0.1, freq: 1)
-      payments.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
+    def value_on_prime(on_date = time_values.first&.date || Date.today, rate: 0.1, freq: 1)
+      time_values.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
     end
 
     # IRR cannot be computed unless the CashFlow has at least one positive and
     # one negative value.  This tests for that.
     def mixed_signs?
-      pos, neg = payments.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
+      pos, neg = time_values.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
       pos.size >= 1 && neg.size >= 1
     end
 
     # Compute the internal rate of return (IRR) for the CashFlow using the
     # Newton-Raphson method and always assuming annual compounding.
     def irr(eps = 0.000001, guess: 0.5, verbose: false)
-      return 0.0 if payments.empty?
+      return 0.0 if time_values.empty?
       return Float::NAN unless mixed_signs?
 
-      first_date = payments.first&.date || Date.today
+      first_date = time_values.first&.date || Date.today
       try_irr = guess
       sign_flipped = false
       iters = 1

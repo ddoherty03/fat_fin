@@ -2,20 +2,20 @@
 
 module FatFin
   describe CashFlow do
-    let!(:pmts) do
+    let!(:tvs) do
       all = []
       dt = Date.today - 25.months
       amt = -10_000
       1.upto(20) do |_k|
-        all << Payment.new(amt, date: dt)
+        all << TimeValue.new(amt, date: dt)
         amt = [amt + 4_700, 1_000].min
         dt += 1.month
       end
       all
     end
     let!(:flow) do
-      flw = CashFlow.new(pmts)
-      flw.add_payment(Payment.new(1479.33, date: Date.today))
+      flw = CashFlow.new(tvs)
+      flw.add_time_value(TimeValue.new(1479.33, date: Date.today))
       flw
     end
     let!(:mt_flow) { CashFlow.new }
@@ -23,19 +23,19 @@ module FatFin
 
     describe "initialization" do
       it "initializes a CashFlow" do
-        expect(flow.payments.count).to eq(21)
-        expect(flow.payments).to all be_a(Payment)
+        expect(flow.time_values.count).to eq(21)
+        expect(flow.time_values).to all be_a(TimeValue)
       end
 
       it "initializes an empty CashFlow" do
-        expect(mt_flow.payments.count).to eq(0)
+        expect(mt_flow.time_values.count).to eq(0)
         expect(mt_flow.value_on(Date.today, rate: 0.05)).to be_zero
       end
     end
 
     describe "time value" do
       it "computes value on a given date" do
-        expect(flow.value_on(flow.payments.first.date, rate: 0.05)).to be_within(eps).of(1722.37916)
+        expect(flow.value_on(flow.time_values.first.date, rate: 0.05)).to be_within(eps).of(1722.37916)
       end
     end
 
@@ -45,7 +45,7 @@ module FatFin
         dt = Date.today - 25.months
         amt = 1_200
         1.upto(20) do |_k|
-          all << Payment.new(amt, date: dt)
+          all << TimeValue.new(amt, date: dt)
           amt = [amt + 470, 1_000].min
           dt += 1.month
         end
@@ -55,7 +55,7 @@ module FatFin
         CashFlow.new(pos_pmts)
       end
       let!(:neg_flow) do
-        CashFlow.new(pos_pmts.map { |pmt| Payment.new(-pmt.amount, date: pmt.date) })
+        CashFlow.new(pos_pmts.map { |pmt| TimeValue.new(-pmt.amount, date: pmt.date) })
       end
 
       it "computes IRR" do
@@ -64,7 +64,7 @@ module FatFin
       end
 
       it "computes negative IRR" do
-        bad_flow = flow << Payment.new(-3_000, date: Date.today)
+        bad_flow = flow << TimeValue.new(-3_000, date: Date.today)
         irr = bad_flow.irr(verbose: true)
         # This expectation value comes from Libreoffice XIRR function on the
         # same data.

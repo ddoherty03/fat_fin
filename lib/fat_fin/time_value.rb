@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module FatFin
-  # This class represents an amount of money paid on a given date.  If the
-  # amount is negative, the amount was paid out, if positive, it was paid in.
-  # This class provides a method for computing the value of the amount as of
+  # This class represents an amount of money on a given date.  If the amount
+  # is negative, the amount was paid out, if positive, it was paid in.  This
+  # class provides a method for computing the time-value of the amount as of
   # some given date at a given rate and a given compunding frequency.  It can
-  # be used for both discounting back in time of forward in time.
-  class Payment
+  # be used for both discounting back in time and compunding forward in time.
+  class TimeValue
     using DateExtension
 
     attr_reader :date, :amount
@@ -17,18 +17,18 @@ module FatFin
     end
 
     def to_s
-      "Pmt[#{@amount} @ #{@date}]"
+      "TV[#{@amount} @ #{@date}]"
     end
 
-    # Return the net present value (NPV) of this Payment on a given date,
+    # Return the net present value (NPV) of this TimeValue on a given date,
     # *on_date*, assuming an /annual/ interest rate of *rate*, expressed as a
     # decimal.  Thus, an 8% per-year interest rate would be given as 0.08.  If
     # compounding at a frequency of more than once per year is wanted, include
     # a *freq* parameter that is an even divisor of 12 to indicate how many
     # times per year the interest is to be compounded.  For simple interest,
     # give a frequency, *freq* of 0.  By default, the frequency is 1.  This
-    # works equally well for computing a future value of this Payment if the
-    # on_date is later than the Payment's date.'
+    # works equally well for computing a future value of this TimeValue if the
+    # on_date is later than the TimeValue's date.'
     def value_on(on_date = Date.today, rate: 0.1, freq: 1)
       on_date = Date.ensure_date(on_date)
 
@@ -37,7 +37,7 @@ module FatFin
         raise ArgumentError, "Compounding frequency (#{freq}) must be a divisor of 12."
       end
 
-      # Number of years between Payment's date and the date on which discouted
+      # Number of years between TimeValue's date and the date on which discouted
       # value is being measured.
       years = on_date.month_diff(date) / 12.0
 
@@ -58,7 +58,7 @@ module FatFin
       end
     end
 
-    # Return the /derivative/ of the net present value of the Payment as of
+    # Return the /derivative/ of the net present value of the TimeValue as of
     # the given date, using the given rate and compunding frequency.
     def value_on_prime(on_date = Date.today, rate: 0.1, freq: 1)
       # rate = rate
@@ -69,8 +69,8 @@ module FatFin
         raise ArgumentError, "Compounding frequency (#{freq}) must be a divisor of 12."
       end
 
-      # Number of years between Payment's date and the date on which discouted
-      # value is being measured.
+      # Number of years between TimeValue's date and the date on which
+      # discouted value is being measured.
       years = on_date.month_diff(date) / 12.0
 
       # Compund interest, accumulate interest freq times per year
