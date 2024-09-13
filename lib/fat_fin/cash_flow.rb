@@ -39,11 +39,11 @@ module FatFin
 
     # Compute the internal rate of return (IRR) for the CashFlow using the
     # Newton-Raphson method and always assuming annual compounding.
-    def irr(eps = 0.000001, verbose: false)
+    def irr(eps = 0.000001, guess: 0.5, verbose: false)
       return 0.0 if payments.empty?
 
       first_date = payments.first&.date || Date.today
-      try_irr = 0.5
+      try_irr = guess
       iters = 0
       while (npv = value_on(first_date, rate: try_irr, freq: 1)).abs > eps
         return Float::NAN if iters > 1000
