@@ -35,29 +35,34 @@ module FatFin
 
     # Compute the internal rate of return (IRR) for the CashFlow using the
     # Newton-Raphson method and always assuming annual compounding.
-    def irr(eps = 0.000001, guess: 0.5, verbose: false)
+    def irr(eps = 0.000001, guess: 0.5, freq: 1, verbose: false)
       return 0.0 if time_values.empty?
       return Float::NAN unless mixed_signs?
 
       first_date = time_values.first&.date || Date.today
       try_irr = guess
-      sign_flipped = false
+      recovery_tried = false
       iters = 1
-      while (npv = value_on(first_date, rate: try_irr, freq: 1)).abs > eps
+      while (npv = value_on(first_date, rate: try_irr, freq: freq)).abs > eps
         return Float::NAN if iters > 100
 
-        if npv.is_a?(Complex) && !sign_flipped
+        if npv.is_a?(Complex) && !recovery_tried
           # If we get a Complex npv, flip the sign of the guess and start
           # over.  But only try this onece.
           try_irr = -guess
-          sign_flipped = true
+          recovery_tried = true
           next
         end
 
-        npv_prime = value_on_prime(first_date, rate: try_irr, freq: 1)
+        npv_prime = value_on_prime(first_date, rate: try_irr, freq: freq)
         return Float::NAN if npv_prime.is_a?(Complex)
 
         new_irr = try_irr - npv / npv_prime
+        if new_irr > 10_000 && guess.abs > 1.0
+          try_irr = 0.5
+          recovery_tried = true
+          next
+        end
         if verbose
           printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
                  { iters: iters, try_irr: try_irr, npv: npv, npv_prime: npv_prime }
