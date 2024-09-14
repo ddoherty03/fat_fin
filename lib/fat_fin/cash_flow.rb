@@ -4,8 +4,6 @@ module FatFin
   # This class represents a stream of payments made at arbitrary dates, not
   # necessarily evenly spaced.
   class CashFlow
-    attr_accessor :time_values
-
     def initialize(time_values = [])
       @time_values = time_values.to_a
       return if @time_values.all? { |tv| tv.is_a?(FatFin::TimeValue) }
@@ -23,6 +21,10 @@ module FatFin
 
     def <<(tval)
       add_time_value(tval)
+    end
+
+    def time_values
+      @time_values.sort
     end
 
     # Return the net present value of the CashFlow as of the given date, using

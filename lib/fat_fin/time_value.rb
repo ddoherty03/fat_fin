@@ -16,6 +16,12 @@ module FatFin
       @date = Date.ensure_date(date)
     end
 
+    include Comparable
+
+    def <=>(other)
+      date <=> other.date
+    end
+
     def to_s
       "TV[#{@amount} @ #{@date}]"
     end
