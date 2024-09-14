@@ -1,7 +1,16 @@
 #+TITLE: FatFin Guide
-#+OPTIONS: toc:4
+#+OPTIONS: toc:5
 #+PROPERTY: header-args:ruby :colnames no :session readme :hlines yes :exports both :wrap example
 #+PROPERTY: header-args:sh :exports code
+
+* Contents                                                              :toc:
+- [[#installation][Installation]]
+- [[#usage][Usage]]
+  - [[#the-timevalue-class][The TimeValue class]]
+  - [[#the-cashflow-class][The CashFlow class]]
+- [[#development][Development]]
+- [[#contributing][Contributing]]
+- [[#license][License]]
 
 * Installation
 
@@ -29,6 +38,11 @@ date.
   require 'bundler/setup'
   require 'fat_fin'
 #+end_src
+
+#+RESULTS:
+#+begin_example
+true
+#+end_example
 
 A new ~TimeValue~ needs an amount and, optionally, a date to be initialized.
 If no date is given, it uses the ~Date.today~ as its date.
@@ -109,23 +123,327 @@ ArgumentError: Frequency (5) must be a divisor of 12 or :cont.
 
 But what about the other two frequencies, 0 and :cont?  A frequency of 0 is
 taken as a request to use simple interest.  That means that not only does
-interest compound yearly or many times a year, but that it /does not compound
-at all/.  Simple interest of 10% for three years amounts to 30% (10% * 3),
-while the same interest compounded annually works out closer to 33.1% ($(1 + 0.1)^3
-= 1.1^3 = 1.331$)
+interest /not/ compound yearly nor many times a year, but that it /does not
+compound at all/.  Simple interest of 10% for three years amounts to 30%
+(10% * 3), while the same interest compounded annually works out closer to
+33.1% ($(1 + 0.1)^3 = 1.1^3 = 1.331$)
 
 As for the special frequency represented by the symbol ~:cont~, it goes to the
 opposite extreme: compounding continuously.  Though compounding 12 times per
 year results in a higher rate than compounding 2 times per year, more frequent
 compounding settles to a limit represented by the exponential function.  That
 is, compounding a 10% annual rate continuously for 3 years works out to around
-34.986%, given by the formula $e^rt$ where $r$ is the annual interest rate and
-$t$ is the number of years interest: $e^(0.1 * 3) = e^(0.3) = 1.34985880758$.
+34.986%, given by the formula $e^{rt$} where $r$ is the annual interest rate and
+$t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
 *** Cumulative Annual Growth Rate---"CAGR"---and the #cagr method
-One measure of how well
 
-*  Development
+One measure of how well an investment that has grown from one value on one
+date to a larger (hopefully) value on a later date is the CAGR, or
+"Cummulative Annual Growth Rate."  It answers the question: in order for my
+investment to have grown so much in such-and-such a time, what /annually
+compounding/ interest rate would I have had to earn?  A high CAGR indicates a
+good annual equivalent return, and a low or even negative CAGR indicates poor
+performance.
+
+The ~TimeValue~ class provides a ~#cagr~ method to measure the CAGR between
+two ~TimeValues~.  Recall that our ~tv1~ value is 25_000.00 on 2021-04-18.
+What CAGR would it represent if it had started out two years earlier as
+15_000, 17_000, etc?
+
+#+begin_src ruby
+  results = [["Start Value", "CAGR"]]
+  (15_000..30_000).step(2_000) do |val0|
+    tv0 = FatFin::TimeValue.new(val0, date: tv1.date - 2.years)
+    results << [ val0, tv1.cagr(tv0).round(5) ]
+  end
+  results
+#+end_src
+
+#+begin_example
+| Start Value |     CAGR |
+|       15000 |  0.29099 |
+|       17000 |  0.21268 |
+|       19000 |  0.14708 |
+|       21000 |  0.09109 |
+|       23000 |  0.04257 |
+|       25000 |      0.0 |
+|       27000 | -0.03775 |
+|       29000 | -0.07152 |
+#+end_example
+
+Had we started with only 15_000 two years earlier, the CAGR would have been a
+very favorable 29%, but it can go the other way too: had we started with
+29_000, it would indicate a negative growth of over 7%.
+
+** The CashFlow class
+
+While the ~TimeValue~ class represents a single value at a single point of time,
+sometime we want to analyze a whole sequence of ~TimeValues~, and this is what
+the ~CashFlow~ class provides.  For the present, it provides two useful
+methods, ~#value_on~ and ~#irr~.
+
+*** Constructing ~CashFlow~ object
+
+A ~CashFlow~ object consists simply of a collection of ~TimeValue~ objects
+that can be passed to the initializer as an array or can be added to it after
+creation with an ~add_time_value~ method or its equivalent, the ~<<~ shovel
+operator.
+
+Suppose one wanted to model an investment that requires a $40,000 up front
+investment and a $5,000 investment after 18 months.  It promises to return
+$2,000 per month for 20 months, then pays a salvage value of $15,000 at the
+end of that time.
+
+#+begin_src ruby
+  start_date = Date.parse('2022-01-15')
+  tvs = [
+    FatFin::TimeValue.new(-40_000, date: start_date),
+    FatFin::TimeValue.new(-5_000, date: start_date + 18.months),
+  ]
+  # Initialize with an Array of TimeValue's
+  flow = FatFin::CashFlow.new(tvs)
+
+  # Add additional TimeValues with the << shovel operator
+  earn_date = start_date + 1.month
+  20.times do |k|
+    flow << FatFin::TimeValue.new(2_000, date: earn_date + k.months)
+  end
+
+  # Or, with the add_time_value method.
+  flow.add_time_value(FatFin::TimeValue.new(15_000, date: earn_date + 21.months))
+  tab = [["Date", "Amount"], nil]
+  flow.time_values.each do |tv|
+    tab << [tv.date.iso, tv.amount.commas(2)]
+  end
+  tab
+#+end_src
+
+#+RESULTS:
+#+begin_example
+| Date       |     Amount |
+|------------+------------|
+| 2022-01-15 | -40,000.00 |
+| 2022-02-15 |   2,000.00 |
+| 2022-03-15 |   2,000.00 |
+| 2022-04-15 |   2,000.00 |
+| 2022-05-15 |   2,000.00 |
+| 2022-06-15 |   2,000.00 |
+| 2022-07-15 |   2,000.00 |
+| 2022-08-15 |   2,000.00 |
+| 2022-09-15 |   2,000.00 |
+| 2022-10-15 |   2,000.00 |
+| 2022-11-15 |   2,000.00 |
+| 2022-12-15 |   2,000.00 |
+| 2023-01-15 |   2,000.00 |
+| 2023-02-15 |   2,000.00 |
+| 2023-03-15 |   2,000.00 |
+| 2023-04-15 |   2,000.00 |
+| 2023-05-15 |   2,000.00 |
+| 2023-06-15 |   2,000.00 |
+| 2023-07-15 |  -5,000.00 |
+| 2023-07-15 |   2,000.00 |
+| 2023-08-15 |   2,000.00 |
+| 2023-09-15 |   2,000.00 |
+| 2023-11-15 |  15,000.00 |
+#+end_example
+
+#+begin_example
+| Date       |     Amount |
+|------------+------------|
+| 2022-01-15 | -40,000.00 |
+| 2022-02-15 |   2,000.00 |
+| 2022-03-15 |   2,000.00 |
+| 2022-04-15 |   2,000.00 |
+| 2022-05-15 |   2,000.00 |
+| 2022-06-15 |   2,000.00 |
+| 2022-07-15 |   2,000.00 |
+| 2022-08-15 |   2,000.00 |
+| 2022-09-15 |   2,000.00 |
+| 2022-10-15 |   2,000.00 |
+| 2022-11-15 |   2,000.00 |
+| 2022-12-15 |   2,000.00 |
+| 2023-01-15 |   2,000.00 |
+| 2023-02-15 |   2,000.00 |
+| 2023-03-15 |   2,000.00 |
+| 2023-04-15 |   2,000.00 |
+| 2023-05-15 |   2,000.00 |
+| 2023-06-15 |   2,000.00 |
+| 2023-07-15 |  -5,000.00 |
+| 2023-07-15 |   2,000.00 |
+| 2023-08-15 |   2,000.00 |
+| 2023-09-15 |   2,000.00 |
+| 2023-11-15 |  15,000.00 |
+#+end_example
+
+*** The ~#value_on~ method, or NPV
+
+Just as one can discount a single ~TimeValue~ to any date at any given rate,
+so one can do the same to a whole collection of ~TimeValues~ with the
+~value_on~ method of ~CashFlow~.  When the value of a collection of
+~TimeValues~ is taken as of the date of the first such payment, it is called
+the "Net Present Value," or NPV, of the stream of payments.
+
+In the above example, payments out are represented by negative numbers and
+receipts are represented by positive numbers.  We can calculate the NPV of the
+above stream by applying the ~value_on~ method to the ~CashFlow~ object:
+
+#+begin_src ruby
+ flow.value_on('2022-01-15', rate: 0.05)
+#+end_src
+
+#+begin_example
+7408.202059517814
+#+end_example
+
+By default, the date used in the as the first parameter to ~#value_on~ is the
+date of the earliest ~TimeValue~ in the collection, i.e., it is the NPV.
+Also, if no rate is given, it uses 10%, with a compunding frequency of once
+per year.
+
+#+begin_src ruby
+ flow.value_on(rate: 0.05)
+#+end_src
+
+#+begin_example
+7408.202059517814
+#+end_example
+
+But the discounted value can be taken as of any date and any rate and using
+any valid compounding frequency as explained above for ~TimeValues~:
+
+#+begin_src ruby
+ flow.value_on('2021-12-25', rate: 0.15, freq: :cont)
+#+end_src
+
+#+begin_example
+2550.791663833679
+#+end_example
+
+*** The ~#irr~ method, or IRR
+
+One common statistic that investors want to compute with respect to a
+~CashFlow~ collection of ~TimeValues~ is the rate that would cause the NPV to
+equal zero, called the "Internal Rate of Return," or IRR.
+
+#+begin_src ruby
+ flow.irr
+#+end_src
+
+#+begin_example
+0.234079364687211
+#+end_example
+
+Here, we see that the IRR for the flow is around 23.4%.  The IRR calculation
+uses a numerical method called the Newton-Raphson method for finding the IRR,
+and it involves providing an initial guess and improving the guess at each
+step.  You can have the ~#irr~ method report the details by adding a ~verbose:
+true~ parameter to the call:
+
+#+begin_src ruby :results output
+ flow.irr(verbose: true)
+#+end_src
+
+#+begin_example
+Iter: 1, Guess: 0.50000000; NPV: -7000.358124150653; NPV': -16235.005275863126
+Iter: 2, Guess: 0.06881085; NPV: 6508.871286784426; NPV': -52881.147555498646
+Iter: 3, Guess: 0.19189576; NPV: 1456.512225106511; NPV': -37214.016867361090
+Iter: 4, Guess: 0.23103457; NPV: 101.147353737917; NPV': -33399.895368673504
+Iter: 5, Guess: 0.23406294; NPV: 0.544028052369; NPV': -33123.491890867845
+Iter: 6, Guess: 0.23407936; NPV: 0.000015873891; NPV': -33121.999771027171
+--------------------
+=> 0.234079364687211
+#+end_example
+
+The ~#irr~ method arbitrarily uses 50%, i.e., 0.5, as the initial guess, but
+you can supply one with the ~guess:~ parameter:
+
+#+begin_src ruby :results output
+ flow.irr(guess: 0.7, verbose: true)
+#+end_src
+
+#+begin_example
+Iter: 1, Guess: 0.70000000; NPV: -10617.222334567750; NPV': -9397.598458233975
+Iter: 2, Guess: -0.42978038; NPV: 58197.568459980481; NPV': -325821.721171744459
+Iter: 3, Guess: -0.25116255; NPV: 29793.136116804930; NPV': -152140.928346713103
+Iter: 4, Guess: -0.05533664; NPV: 13263.003678757032; NPV': -77248.321284365054
+Iter: 5, Guess: 0.11635646; NPV: 4397.988476767375; NPV': -46061.393397887812
+Iter: 6, Guess: 0.21183748; NPV: 752.867212111824; NPV': -35212.962865663074
+Iter: 7, Guess: 0.23321787; NPV: 28.558054840016; NPV': -33200.365740257657
+Iter: 8, Guess: 0.23407805; NPV: 0.043637176911; NPV': -33122.119414792280
+--------------------
+=> 0.2340793651633826
+#+end_example
+
+But be careful, a bad initial guess can cause the algorithm to spin out of
+control:
+
+#+begin_src ruby :results output
+ flow.irr(guess: 7, verbose: true)
+#+end_src
+
+#+begin_example
+Iter: 1, Guess: 7.00000000; NPV: -29649.413393915813; NPV': 3070.038462184162
+Iter: 2, Guess: 16.65766838; NPV: -32652.745358328226; NPV': 1689.984776927528
+Iter: 3, Guess: 35.97899352; NPV: -34318.471305710351; NPV': 879.290608451190
+Iter: 4, Guess: 75.00871928; NPV: -35403.915257938366; NPV': 449.240734072502
+Iter: 5, Guess: 153.81705649; NPV: -36172.392029706331; NPV': 227.656121869119
+Iter: 6, Guess: 312.70754330; NPV: -36746.160852021960; NPV': 114.867018986867
+Iter: 7, Guess: 632.60929731; NPV: -37190.985548284778; NPV': 57.809166659572
+Iter: 8, Guess: 1275.94992471; NPV: -37545.745333550236; NPV': 29.046058385040
+Iter: 9, Guess: 2568.57782058; NPV: -37835.014151742158; NPV': 14.578014028063
+Iter: 10, Guess: 0.50000000; NPV: -7000.358124150653; NPV': -16235.005275863126
+Iter: 11, Guess: 0.06881085; NPV: 6508.871286784426; NPV': -52881.147555498646
+Iter: 12, Guess: 0.19189576; NPV: 1456.512225106511; NPV': -37214.016867361090
+Iter: 13, Guess: 0.23103457; NPV: 101.147353737917; NPV': -33399.895368673504
+Iter: 14, Guess: 0.23406294; NPV: 0.544028052369; NPV': -33123.491890867845
+Iter: 15, Guess: 0.23407936; NPV: 0.000015873891; NPV': -33121.999771027171
+--------------------
+=> 0.234079364687211
+#+end_example
+
+This initial guess of 7 caused the iterations to make no progress towards
+finding a solution.  When the algorithm detects that the guesses are going out
+of control and that the initial guess was not close to the default, it resets
+it to the default guess and starts over.  In this case it was able to recover
+and get the right answer.
+
+*** Non-Standard Compounding
+
+The classical NPV analysis always assumes annual compounding of interest, but
+other assumptions are plausible.  So, the ~#irr~ method can be given a ~freq:~
+parameter like the ~#value_on~ methods.
+
+Like continuous compounding:
+
+#+begin_src ruby :results output
+ flow.irr(freq: :cont, verbose: true)
+#+end_src
+
+#+begin_example
+Iter: 1, Guess: 0.50000000; NPV: -9786.277460641681; NPV': -27675.279951834360
+Iter: 2, Guess: 0.14638922; NPV: 2733.069047953215; NPV': -44682.615719737325
+Iter: 3, Guess: 0.20755549; NPV: 113.431497147067; NPV': -41032.297863861058
+Iter: 4, Guess: 0.21031993; NPV: 0.216918454284; NPV': -40875.476787591077
+--------------------
+=> 0.21032523876545936
+#+end_example
+
+Or, egad, simple interest:
+
+#+begin_src ruby :results output
+ flow.irr(freq: 0, verbose: true)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Iter: 1, Guess: 0.50000000; NPV: -17500.000000000000; NPV': -55000.000000000000
+--------------------
+=> 0.18181818181818182
+#+end_example
+
+
+* Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then,
 run `rake spec` to run the tests. You can also run `bin/console` for an
@@ -141,6 +459,6 @@ version, push git commits and the created tag, and push the `.gem` file to
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/ddoherty03/fat_fin.
 
-*  License
+* License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
