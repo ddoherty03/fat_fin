@@ -33,19 +33,6 @@ module FatFin
       time_values.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
     end
 
-    # Return the /derivative/ of the net present value of the CashFlow as of
-    # the given date, using the given rate and compunding frequency.
-    def value_on_prime(on_date = time_values.first&.date || Date.today, rate: 0.1, freq: 1)
-      time_values.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
-    end
-
-    # IRR cannot be computed unless the CashFlow has at least one positive and
-    # one negative value.  This tests for that.
-    def mixed_signs?
-      pos, neg = time_values.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
-      pos.size >= 1 && neg.size >= 1
-    end
-
     # Compute the internal rate of return (IRR) for the CashFlow using the
     # Newton-Raphson method and always assuming annual compounding.
     def irr(eps = 0.000001, guess: 0.5, verbose: false)
@@ -82,6 +69,21 @@ module FatFin
       end
       puts "--------------------" if verbose
       try_irr
+    end
+
+    private
+
+    # Return the /derivative/ of the net present value of the CashFlow as of
+    # the given date, using the given rate and compunding frequency.
+    def value_on_prime(on_date = time_values.first&.date || Date.today, rate: 0.1, freq: 1)
+      time_values.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
+    end
+
+    # IRR cannot be computed unless the CashFlow has at least one positive and
+    # one negative value.  This tests for that.
+    def mixed_signs?
+      pos, neg = time_values.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
+      pos.size >= 1 && neg.size >= 1
     end
   end
 end
