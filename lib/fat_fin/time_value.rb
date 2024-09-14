@@ -56,7 +56,7 @@ module FatFin
         amount * Math.exp(rate * years)
       elsif freq.zero?
         # Simple interest, just rate times number of years
-        if years >= 0
+        if years.positive?
           amount * (1.0 + (rate * years))
         else
           amount / (1.0 + (rate * -years))
@@ -75,25 +75,33 @@ module FatFin
     def value_on_prime(on_date = Date.today, rate: 0.1, freq: 1)
       # rate = rate
       on_date = Date.ensure_date(on_date)
-
-      # Check frq for sanity
-      unless [1, 2, 3, 4, 6, 12].include?(freq)
-        raise ArgumentError, "Compounding frequency (#{freq}) must be a divisor of 12."
-      end
+      raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
 
       # Number of years between TimeValue's date and the date on which
       # discouted value is being measured.
       years = on_date.month_diff(date) / 12.0
 
-      # Compund interest, accumulate interest freq times per year
-      periods = years * freq
-      # Rate per period
-      rate_per_period = rate / freq
+      if freq == :cont
+        # Continuous compounding
+        amount * years * Math.exp(rate * years)
+      elsif freq.zero?
+        # Simple interest
+        if years.positive?
+          amount * years
+        else
+          -(amount * years) / (1 + rate * years)**2
+        end
+      else
+        # Compund interest, accumulate interest freq times per year
+        periods = years * freq
+        # Rate per period
+        rate_per_period = rate / freq
 
-      # This is the derivative of the value_on (NPV) of amount with respect to
-      # rate.  It will be used in improving guesses using the Newton-Raphson
-      # interation in the IRR calculation.
-      ((periods - 1) * amount) * (1 + rate_per_period)**(periods - 1)
+        # This is the derivative of the value_on (NPV) of amount with respect to
+        # rate.  It will be used in improving guesses using the Newton-Raphson
+        # interation in the IRR calculation.
+        ((periods - 1) * amount) * (1 + rate_per_period)**(periods - 1)
+      end
     end
 
     # Compute the "compound annual growth rate" that would have been required
