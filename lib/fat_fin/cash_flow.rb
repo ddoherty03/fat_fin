@@ -165,8 +165,6 @@ module FatFin
       mirr
     end
 
-    private
-
     def first_date
       time_values.first.date
     end
@@ -174,6 +172,8 @@ module FatFin
     def last_date
       time_values.last.date
     end
+
+    private
 
     def pos_neg_partition
       pos, neg = time_values.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
