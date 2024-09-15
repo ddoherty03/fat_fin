@@ -36,9 +36,19 @@ module FatFin
       self
     end
 
-    # Add a new TimeValue to an existing CashFlow.
-    def <<(tval)
-      add_time_value(tval)
+    # Merge TimeValue or CashFlow into this CashFlow.
+    def <<(other)
+      case other
+      when TimeValue
+        add_time_value(other)
+      when CashFlow
+        other.time_values.each do |tv|
+          add_time_value(tv)
+        end
+      else
+        raise ArgumentError, "May only merge CashFlow or TimeValue" unless tval.is_a?(FatFin::TimeValue)
+      end
+      self
     end
 
     # Return the array of TimeValues
