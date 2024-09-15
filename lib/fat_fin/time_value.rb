@@ -9,7 +9,8 @@ module FatFin
   class TimeValue
     using DateExtension
 
-    attr_reader :date, :amount
+    attr_reader :date
+    attr_accessor :amount
 
     def initialize(amount, date: Date.today)
       @amount = amount
@@ -20,6 +21,12 @@ module FatFin
 
     def <=>(other)
       date <=> other.date
+    end
+
+    # Add the amount of other to this TimeValue if other has the same date;
+    # otherwise, do nothing.
+    def merge(other)
+      self.amount += other.amount if date == other.date
     end
 
     def to_s
