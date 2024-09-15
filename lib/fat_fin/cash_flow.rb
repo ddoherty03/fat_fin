@@ -76,9 +76,20 @@ module FatFin
       time_values.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
     end
 
-    # Compute the internal rate of return (IRR) for the CashFlow using the
-    # Newton-Raphson method and always assuming annual compounding.
-    def irr(eps = 0.000001, guess: 0.5, freq: 1, verbose: false)
+    # Compute the annual internal rate of return (IRR) for the CashFlow using
+    # the Newton-Raphson method.  The IRR is that rate that causes the NPV od
+    # the CashFlow to equal zero.  In other words, the rate that causes the
+    # #value_on the first date in the flow to equal zero.  It assumes a
+    # compounding frequency given by freq: parameter (default 1).  The
+    # parameter eps: determines how close to zero we have to get (default
+    # 0.000001).  The method depends on using an initial guess, which can be
+    # supplied by the guess: parameter (default 0.5).  If you get a Float::NAN
+    # result, you may have better luck using a different initial guess, but
+    # sometimes there is no rate that can produce an NPV of zero.  For
+    # example, a CashFlow with all positive or all negative TimeValues will
+    # never yeild an NPV os zero.  You can print the progress of the
+    # algorithim by setting the verbose: parameter (default false) to true.
+    def irr(eps: 0.000001, guess: 0.5, freq: 1, verbose: false)
       return 0.0 if time_values.empty?
       return Float::NAN unless mixed_signs?
 
