@@ -4,6 +4,8 @@ module FatFin
   # This class represents a stream of payments made at arbitrary dates, not
   # necessarily evenly spaced.
   class CashFlow
+    using DateExtension
+
     def initialize(time_values = [])
       @time_values = time_values.to_a
       return if @time_values.all? { |tv| tv.is_a?(FatFin::TimeValue) }
