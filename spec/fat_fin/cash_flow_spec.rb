@@ -4,7 +4,7 @@ module FatFin
   describe CashFlow do
     let!(:tvs) do
       all = []
-      dt = Date.today - 25.months
+      dt = Date.parse('2022-08-14')
       amt = -10_000
       1.upto(20) do |_k|
         all << TimeValue.new(amt, date: dt)
@@ -15,7 +15,7 @@ module FatFin
     end
     let!(:flow) do
       flw = CashFlow.new(tvs)
-      flw.add_time_value(TimeValue.new(1479.33, date: Date.today))
+      flw.add_time_value(TimeValue.new(1479.33, date: Date.parse('2024-09-14')))
       flw
     end
     let!(:mt_flow) { CashFlow.new }
@@ -59,17 +59,16 @@ module FatFin
       end
 
       it "computes IRR" do
-        # expect(flow.irr(0.000000000001, verbose: true)).to be_within(eps).of(0.1702)
-        expect(flow.irr(eps)).to be_within(eps).of(0.1702)
+        expect(flow.irr(eps: eps)).to be_within(eps).of(0.1702)
       end
 
       it "computes negative IRR" do
-        bad_flow = flow << TimeValue.new(-3_000, date: Date.today)
+        bad_flow = flow << TimeValue.new(-3_000, date: '2024-09-14')
         irr = bad_flow.irr(verbose: true)
         # This expectation value comes from Libreoffice XIRR function on the
         # same data.
         expect(irr).to be_within(eps).of(-0.0342907057)
-        irr = bad_flow.irr(guess: -0.5, verbose: true)
+        irr = bad_flow.irr(eps: eps, guess: -0.5, verbose: true)
         expect(irr).to be_within(eps).of(-0.0342907057)
       end
 
