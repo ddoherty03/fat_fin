@@ -39,6 +39,26 @@ module FatFin
       end
     end
 
+    describe "attribute methods" do
+      it "\#time_values" do
+        expect(flow.time_values).to all be_a(TimeValue)
+      end
+
+      it "\#size" do
+        expect(flow.size).to eq(21)
+      end
+
+      it "\#empty?" do
+        expect(flow.empty?).to be_falsey
+        expect(mt_flow.empty?).to be_truthy
+      end
+
+      it "\#period" do
+        expect(flow.period).to eq(Period.parse_phrase('from 2022-08-14 to 2024-09-14').first)
+        expect(mt_flow.period).to be_nil
+      end
+    end
+
     describe "IRR" do
       let!(:pos_pmts) do
         all = []
