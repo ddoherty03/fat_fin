@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "fat_core"
+  spec.add_dependency "fat_period"
 
   spec.add_development_dependency "debug"
   spec.add_development_dependency "rspec"

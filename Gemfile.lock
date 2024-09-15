@@ -3,6 +3,7 @@ PATH
   specs:
     fat_fin (0.1.0)
       fat_core
+      fat_period
 
 GEM
   remote: https://rubygems.org/
@@ -32,6 +33,8 @@ GEM
     fat_core (5.0.1)
       activesupport
       damerau-levenshtein
+    fat_period (1.4.0)
+      fat_core (>= 4.8.3)
     i18n (1.14.5)
       concurrent-ruby (~> 1.0)
     io-console (0.7.2)
