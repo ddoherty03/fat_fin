@@ -51,6 +51,23 @@ module FatFin
       @time_values.keys.sort
     end
 
+    # Return the number of TimeValues in this CashFlow.
+    def size
+      time_values.size
+    end
+
+    # Return whether this CashFlow has no TimeValues, i.e., is empty.
+    def empty?
+      size.zero?
+    end
+
+    # Return the Period from the first to the last TimeValue in this CashFlow.
+    def period
+      return nil if empty?
+
+      Period.new(first_date, last_date)
+    end
+
     end
 
     # Return the net present value of the CashFlow as of the given date, using
