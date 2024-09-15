@@ -3,15 +3,6 @@
 #+PROPERTY: header-args:ruby :colnames no :session readme :hlines yes :exports both :wrap example
 #+PROPERTY: header-args:sh :exports code
 
-* Contents                                                              :toc:
-- [[#installation][Installation]]
-- [[#usage][Usage]]
-  - [[#the-timevalue-class][The TimeValue class]]
-  - [[#the-cashflow-class][The CashFlow class]]
-- [[#development][Development]]
-- [[#contributing][Contributing]]
-- [[#license][License]]
-
 * Installation
 
 Install the gem and add to the application's Gemfile by executing:
@@ -25,6 +16,23 @@ If bundler is not being used to manage dependencies, install the gem by executin
 #+begin_src sh
   $ gem install fat_fin
 #+end_src
+
+* Table of Contents                                            :toc:noexport:
+- [[#installation][Installation]]
+- [[#usage][Usage]]
+  - [[#the-timevalue-class][The TimeValue class]]
+    - [[#constructing-a-timevalue][Constructing a TimeValue]]
+    - [[#time-value-on-a-different-dates-with-value_on-pv-and-fv][Time Value on a different dates with #value_on (PV and FV)]]
+    - [[#cumulative-annual-growth-rate-with-cagr-cagr][Cumulative Annual Growth Rate with #cagr (CAGR)]]
+  - [[#the-cashflow-class][The CashFlow class]]
+    - [[#constructing-cashflow-object][Constructing ~CashFlow~ object]]
+    - [[#the-value_on-method-or-npv][The ~#value_on~ method, or NPV]]
+    - [[#the-irr-method-or-irr][The ~#irr~ method, or IRR]]
+    - [[#modified-internal-rate-of-return-with-mirr-mirr-aka-mwirr][Modified Internal Rate of Return with ~#mirr~ (MIRR aka MWIRR)]]
+    - [[#non-standard-compounding][Non-Standard Compounding]]
+- [[#development][Development]]
+- [[#contributing][Contributing]]
+- [[#license][License]]
 
 * Usage
 
@@ -44,15 +52,17 @@ date.
 true
 #+end_example
 
+*** Constructing a TimeValue
 A new ~TimeValue~ needs an amount and, optionally, a date to be initialized.
 If no date is given, it uses the ~Date.today~ as its date.
 
-*** Get values on different dates with #value_on
 #+begin_src ruby :session readme
   tv1 = FatFin::TimeValue.new(25_000.00, date: '2021-04-18')
 #+end_src
 
 : #<FatFin::TimeValue:0x000078024fe32c58 @amount=25000.0, @date=Sun, 18 Apr 2021>
+
+*** Time Value on a different dates with #value_on (PV and FV)
 
 Once created, you can get its time-value as of any other date at any assumed
 interest rate.  For example, at a 5% rate, here is how you would find its
@@ -136,7 +146,7 @@ is, compounding a 10% annual rate continuously for 3 years works out to around
 34.986%, given by the formula $e^{rt$} where $r$ is the annual interest rate and
 $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
-*** Cumulative Annual Growth Rate---"CAGR"---and the #cagr method
+*** Cumulative Annual Growth Rate with #cagr (CAGR)
 
 One measure of how well an investment that has grown from one value on one
 date to a larger (hopefully) value on a later date is the CAGR, or
@@ -378,6 +388,18 @@ finding a solution.  When the algorithm detects that the guesses are going out
 of control and that the initial guess was not close to the default, it resets
 it to the default guess and starts over.  In this case it was able to recover
 and get the right answer.
+
+*** Modified Internal Rate of Return with ~#mirr~ (MIRR aka MWIRR)
+
+One assumption that the IRR method makes is that amounts coming in accumulate
+interest or value at the same rate as we should discount values going out.
+However, this is not always the case.  The rate at which one may borrow values
+going out and the rate at which one may earn on values coming in may be quite
+different.
+
+\[
+(\frac{FV}{PV})^{1/y}
+\]
 
 *** Non-Standard Compounding
 
