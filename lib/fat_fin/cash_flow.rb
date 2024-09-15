@@ -7,26 +7,50 @@ module FatFin
     using DateExtension
 
     def initialize(time_values = [])
-      @time_values = time_values.to_a
-      return if @time_values.all? { |tv| tv.is_a?(FatFin::TimeValue) }
+      time_values = time_values.to_a
+      unless time_values.all? { |tv| tv.is_a?(FatFin::TimeValue) }
+        raise ArgumentError, "All CashFlow components must be TimeValues"
+      end
 
-      raise ArgumentError, "All CashFlow components must be TimeValues"
+      # Build Hash keyed on TimeValue dates.
+      @time_values = {}
+      time_values.each do |tv|
+        @time_values[tv.date] =
+          if @time_values[tv.date]
+            @time_values[tv.date].merge(tv)
+          else
+            tv
+          end
+      end
     end
 
-    # Add a new Payment to an existing CashFlow.
+    # Add a new TimeValue to an existing CashFlow.
     def add_time_value(tval)
       raise ArgumentError, "CashFlow component must be a TimeValue" unless tval.is_a?(FatFin::TimeValue)
 
-      @time_values << tval
+      if @time_values.keys.include?(tval.date)
+        @time_values[tval.date].merge(tval)
+      else
+        @time_values[tval.date] = tval
+      end
       self
     end
 
+    # Add a new TimeValue to an existing CashFlow.
     def <<(tval)
       add_time_value(tval)
     end
 
+    # Return the array of TimeValues
     def time_values
-      @time_values.sort
+      @time_values.values.sort
+    end
+
+    # Return the array of the dates in this CashFlow, sorted.
+    def dates
+      @time_values.keys.sort
+    end
+
     end
 
     # Return the net present value of the CashFlow as of the given date, using
