@@ -92,6 +92,20 @@ module FatFin
         expect(irr).to be_within(eps).of(-0.0342907057)
       end
 
+      it "computes empty Flow IRR" do
+        expect(mt_flow.irr(eps: eps)).to be_within(eps).of(0.0)
+      end
+
+      it "irr barfs with all positive amounts" do
+        expect(pos_flow.irr(eps: eps)).to be(Float::NAN)
+      end
+
+      it "barfs with all negative amounts" do
+        expect(neg_flow.irr(eps: eps)).to be(Float::NAN)
+      end
+    end
+
+    describe "MIRR" do
       it "computes MIRR" do
         expect(flow.mirr).to be_within(eps).of(0.1035626)
         expect(flow.mirr(verbose: true)).to be_within(eps).of(0.1035626)
@@ -99,23 +113,12 @@ module FatFin
 
       it "computes MIRR that has a negative IRR" do
         bad_flow = flow << TimeValue.new(-3_000, date: '2024-09-14')
-        mwirr = bad_flow.mirr(verbose: true)
-        expect(mwirr).to be_within(eps).of(0.022493)
+        mirr = bad_flow.mirr(verbose: true)
+        expect(mirr).to be_within(eps).of(0.022493)
       end
-
-      it "computes empty Flow IRR" do
-        expect(mt_flow.irr(eps)).to be_within(eps).of(0.0)
 
       it "computes empty Flow MIRR" do
         expect(mt_flow.mirr).to be_within(eps).of(0.0)
-      end
-
-      it "barfs with all positive amounts" do
-        expect(pos_flow.irr(eps)).to be(Float::NAN)
-      end
-
-      it "barfs with all negative amounts" do
-        expect(neg_flow.irr(eps)).to be(Float::NAN)
       end
     end
   end
