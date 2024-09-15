@@ -59,6 +59,16 @@ module FatFin
       end
     end
 
+    describe "#within" do
+      it "constructs sub CashFlow within period" do
+        pd = Period.parse('2023')
+        wflow = flow.within(pd)
+        expect(wflow.first_date).to eq(pd.first)
+        expect(wflow.size).to eq(13)
+        expect(wflow.last_date).to be <= (pd.last)
+      end
+    end
+
     describe "IRR" do
       let!(:pos_pmts) do
         all = []

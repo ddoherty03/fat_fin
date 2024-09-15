@@ -68,6 +68,26 @@ module FatFin
       Period.new(first_date, last_date)
     end
 
+    # Return a new CashFlow that narrows this CashFlow to the given period.
+    # All TimeValues before the beginning of the period are rolled up into a
+    # single TimeValue having a date of the beginning of the period and an
+    # amount that represents their value_on that date.  All the TimeValues
+    # that fall within the period are retained and any TimeValues that are
+    # beyond the last date of the period are dropped.
+    def within(period, rate: 0.1, freq: 1)
+      pre_tvs = []
+      within_tvs = []
+      time_values.each do |tv|
+        if tv.date < period.first
+          pre_tvs << tv
+        elsif period.contains?(tv.date)
+          within_tvs << tv
+        end
+      end
+      pre_cf = CashFlow.new(pre_tvs)
+      first_val = pre_cf.value_on(period.first, rate: rate, freq: freq)
+      first_tv = TimeValue.new(first_val, date: period.first)
+      CashFlow.new(within_tvs) << first_tv
     end
 
     # Return the net present value of the CashFlow as of the given date, using
