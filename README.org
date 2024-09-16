@@ -20,23 +20,23 @@ If bundler is not being used to manage dependencies, install the gem by executin
 * Table of Contents                                            :toc:noexport:
 - [[#installation][Installation]]
 - [[#usage][Usage]]
-  - [[#the-timevalue-class][The TimeValue class]]
-    - [[#constructing-a-timevalue][Constructing a TimeValue]]
-    - [[#time-value-on-a-different-dates-with-value_on-pv-and-fv][Time Value on a different dates with #value_on (PV and FV)]]
-    - [[#cumulative-annual-growth-rate-with-cagr-cagr][Cumulative Annual Growth Rate with #cagr (CAGR)]]
-  - [[#the-cashflow-class][The CashFlow class]]
+  - [[#timevalue-class][~TimeValue~ class]]
+    - [[#constructing-a-timevalue--object][Constructing a ~TimeValue~  object]]
+    - [[#computing-a-timevalues-value-on-a-different-date-with-value_on-pv-and-fv][Computing a ~TimeValue~'s value on a different date with #value_on (PV and FV)]]
+    - [[#computing-the-annualized-growth-rate-between-two-timevalues-with-cagr-cagr][Computing the annualized growth rate between two ~TimeValues~ with #cagr (CAGR)]]
+  - [[#cashflow-class][~CashFlow~ class]]
     - [[#constructing-cashflow-object][Constructing ~CashFlow~ object]]
-    - [[#the-value_on-method-or-npv][The ~#value_on~ method, or NPV]]
-    - [[#the-irr-method-or-irr][The ~#irr~ method, or IRR]]
-    - [[#modified-internal-rate-of-return-with-mirr-mirr-aka-mwirr][Modified Internal Rate of Return with ~#mirr~ (MIRR aka MWIRR)]]
-    - [[#non-standard-compounding][Non-Standard Compounding]]
+    - [[#computing-a-cashflows-value-on-a-different-date-with-value_on-npv][Computing a ~CashFlow~'s value on a different date with ~#value_on~ (NPV)]]
+    - [[#computing-a-cashflows-internal-rate-of-return-with-irr-irr][Computing a ~CashFlow~'s internal rate of return with ~#irr~ (IRR)]]
+    - [[#computing-a-cashflows-a-modified-internal-rate-of-return-with-mirr-mirr-aka-mwirr][Computing a ~CashFlow~'s a modified internal rate of Return with ~#mirr~ (MIRR aka MWIRR)]]
+    - [[#using-non-standard-compounding][Using Non-Standard Compounding]]
 - [[#development][Development]]
 - [[#contributing][Contributing]]
 - [[#license][License]]
 
 * Usage
 
-** The TimeValue class
+** ~TimeValue~ class
 This gem, ~fat_fin~, defines classes for dealing with certain financial
 calculations dealing with the time-value of money.  It's base class is
 ~TimeValue~ which provides for creation of money values tied to a particular
@@ -52,7 +52,7 @@ date.
 true
 #+end_example
 
-*** Constructing a TimeValue
+*** Constructing a ~TimeValue~  object
 A new ~TimeValue~ needs an amount and, optionally, a date to be initialized.
 If no date is given, it uses the ~Date.today~ as its date.
 
@@ -60,21 +60,27 @@ If no date is given, it uses the ~Date.today~ as its date.
   tv1 = FatFin::TimeValue.new(25_000.00, date: '2021-04-18')
 #+end_src
 
-: #<FatFin::TimeValue:0x000078024fe32c58 @amount=25000.0, @date=Sun, 18 Apr 2021>
+#+begin_example
+#<FatFin::TimeValue:0x00007f9a8f882f58 @amount=25000.0, @date=Sun, 18 Apr 2021>
+#+end_example
 
-*** Time Value on a different dates with #value_on (PV and FV)
+*** Computing a ~TimeValue~'s value on a different date with #value_on (PV and FV)
 
 Once created, you can get its time-value as of any other date at any assumed
 interest rate.  For example, at a 5% rate, here is how you would find its
-value after more than two year.
+value after more than two years.
+
 #+begin_src ruby
   tv1.value_on('2024-09-12', rate: 0.05)
 #+end_src
 
-: 29510.979573836776
+#+begin_example
+29510.979573836776
+#+end_example
 
 The same ~value_on~ method works equally well for discounting the value back
 to an earlier date with a different interest rate, 6% this time.
+
 #+begin_src ruby
   tv1.value_on('2020-05-16', rate: 0.06)
 #+end_src
@@ -85,25 +91,28 @@ to an earlier date with a different interest rate, 6% this time.
 
 If no rate is given a 10% rate is (arbitrarily) used and if no date is given,
 it uses its own date.  Here's how the value progresses through time:
+
 #+begin_src ruby
-  [['2024-09-12', tv1.date.iso, '2020-05-16'],
-  [tv1.value_on('2024-09-12'),
-   tv1.value_on,
-   tv1.value_on('2020-05-16')]
+  [['2024-09-12', tv1.date.iso, '2020-05-16'], nil,
+  [tv1.value_on('2020-05-16'),
+   tv1.value_on('2022-05-16'),
+   tv1.value_on('2024-05-16')]
   ]
 #+end_src
 
 #+begin_example
-|        2024-09-12 |         2021-04-18 |         2020-05-16 |
-| 34568.07043490467 | 34577.223560411374 | 22896.376327119215 |
+|         2024-09-12 |        2021-04-18 |         2020-05-16 |
+|--------------------+-------------------+--------------------|
+| 22896.376327119215 | 27704.61535581425 | 33522.584580535244 |
 #+end_example
 
 Besides varying the valuation date and the rate used, the ~#value_on~ method
 also allows you to optionally specify the number of compounding periods per
 year with the ~freq:~ parameter.  I use the ~#commas~ method from my
 ~fat_core~ gem here to make the numbers more readable.
+
 #+begin_src ruby
-  [[0, 1, 2, 3, 4, 6, 12, :cont],
+  [[0, 1, 2, 3, 4, 6, 12, :cont], nil,
   [
     tv1.value_on('2024-09-12', freq: 0).commas(2),
     tv1.value_on('2024-09-12', freq: 1).commas(2),
@@ -118,6 +127,7 @@ year with the ~freq:~ parameter.  I use the ~#commas~ method from my
 
 #+begin_example
 |         0 |         1 |         2 |         3 |         4 |         6 |        12 |     :cont |
+|-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------|
 | 33,500.00 | 34,568.07 | 34,835.92 | 34,929.51 | 34,977.16 | 35,025.40 | 35,074.24 | 35,123.69 |
 #+end_example
 
@@ -146,7 +156,7 @@ is, compounding a 10% annual rate continuously for 3 years works out to around
 34.986%, given by the formula $e^{rt$} where $r$ is the annual interest rate and
 $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
-*** Cumulative Annual Growth Rate with #cagr (CAGR)
+*** Computing the annualized growth rate between two ~TimeValues~ with #cagr (CAGR)
 
 One measure of how well an investment that has grown from one value on one
 date to a larger (hopefully) value on a later date is the CAGR, or
@@ -162,66 +172,68 @@ What CAGR would it represent if it had started out two years earlier as
 15_000, 17_000, etc?
 
 #+begin_src ruby
-  results = [["Start Value", "CAGR"]]
+  results = [["Start Value", "CAGR"]], nil
   (15_000..30_000).step(2_000) do |val0|
     tv0 = FatFin::TimeValue.new(val0, date: tv1.date - 2.years)
-    results << [ val0, tv1.cagr(tv0).round(5) ]
+    results << [ val0.commas(2), tv1.cagr(tv0).round(5) ]
   end
   results
 #+end_src
 
 #+begin_example
-| Start Value |     CAGR |
-|       15000 |  0.29099 |
-|       17000 |  0.21268 |
-|       19000 |  0.14708 |
-|       21000 |  0.09109 |
-|       23000 |  0.04257 |
-|       25000 |      0.0 |
-|       27000 | -0.03775 |
-|       29000 | -0.07152 |
+| (Start Value CAGR) |          |
+|--------------------+----------|
+|          15,000.00 |  0.29099 |
+|          17,000.00 |  0.21268 |
+|          19,000.00 |  0.14708 |
+|          21,000.00 |  0.09109 |
+|          23,000.00 |  0.04257 |
+|          25,000.00 |      0.0 |
+|          27,000.00 | -0.03775 |
+|          29,000.00 | -0.07152 |
 #+end_example
 
 Had we started with only 15_000 two years earlier, the CAGR would have been a
 very favorable 29%, but it can go the other way too: had we started with
 29_000, it would indicate a negative growth of over 7%.
 
-** The CashFlow class
+** ~CashFlow~ class
 
 While the ~TimeValue~ class represents a single value at a single point of time,
 sometime we want to analyze a whole sequence of ~TimeValues~, and this is what
-the ~CashFlow~ class provides.  For the present, it provides two useful
-methods, ~#value_on~ and ~#irr~.
+the ~CashFlow~ class provides.
 
 *** Constructing ~CashFlow~ object
 
-A ~CashFlow~ object consists simply of a collection of ~TimeValue~ objects
-that can be passed to the initializer as an array or can be added to it after
-creation with an ~add_time_value~ method or its equivalent, the ~<<~ shovel
-operator.
+A ~CashFlow~ object consists of a collection of ~TimeValue~ objects that can
+be passed to the initializer as an array or can be added to it after creation
+with an ~add_time_value~ method or its equivalent, the ~<<~ shovel operator.
 
 Suppose one wanted to model an investment that requires a $40,000 up front
-investment and a $5,000 investment after 18 months.  It promises to return
+investment and a $5,000 investment after 18 months.  It promises to earn
 $2,000 per month for 20 months, then pays a salvage value of $15,000 at the
 end of that time.
 
 #+begin_src ruby
+  # Upfront costs
   start_date = Date.parse('2022-01-15')
   tvs = [
     FatFin::TimeValue.new(-40_000, date: start_date),
     FatFin::TimeValue.new(-5_000, date: start_date + 18.months),
   ]
-  # Initialize with an Array of TimeValue's
   flow = FatFin::CashFlow.new(tvs)
 
-  # Add additional TimeValues with the << shovel operator
+  # Add additional TimeValues representing the earnings with the << shovel
+  # operator
   earn_date = start_date + 1.month
   20.times do |k|
     flow << FatFin::TimeValue.new(2_000, date: earn_date + k.months)
   end
 
-  # Or, with the add_time_value method.
+  # Add the salvage value at the end with the add_time_value method.
   flow.add_time_value(FatFin::TimeValue.new(15_000, date: earn_date + 21.months))
+
+  # Format it all as a table
   tab = [["Date", "Amount"], nil]
   flow.time_values.each do |tv|
     tab << [tv.date.iso, tv.amount.commas(2)]
@@ -250,18 +262,17 @@ end of that time.
 | 2023-04-15 |   2,000.00 |
 | 2023-05-15 |   2,000.00 |
 | 2023-06-15 |   2,000.00 |
-| 2023-07-15 |  -5,000.00 |
-| 2023-07-15 |   2,000.00 |
+| 2023-07-15 |  -3,000.00 |
 | 2023-08-15 |   2,000.00 |
 | 2023-09-15 |   2,000.00 |
 | 2023-11-15 |  15,000.00 |
 #+end_example
 
-*** The ~#value_on~ method, or NPV
+*** Computing a ~CashFlow~'s value on a different date with ~#value_on~ (NPV)
 
-Just as one can discount a single ~TimeValue~ to any date at any given rate,
-so one can do the same to a whole collection of ~TimeValues~ with the
-~value_on~ method of ~CashFlow~.  When the value of a collection of
+Just as you can compute the time-value of a single ~TimeValue~ to any date at
+any given rate, so you can do the same to a whole collection of ~TimeValues~
+with the ~value_on~ method of ~CashFlow~.  When the value of a collection of
 ~TimeValues~ is taken as of the date of the first such payment, it is called
 the "Net Present Value," or NPV, of the stream of payments.
 
@@ -274,7 +285,7 @@ above stream by applying the ~value_on~ method to the ~CashFlow~ object:
 #+end_src
 
 #+begin_example
-7408.202059517814
+7408.202059517813
 #+end_example
 
 By default, the date used in the as the first parameter to ~#value_on~ is the
@@ -282,30 +293,32 @@ date of the earliest ~TimeValue~ in the collection, i.e., it is the NPV.
 Also, if no rate is given, it uses 10%, with a compunding frequency of once
 per year.
 
+But we can compute the ~CashFlow~'s value as of any date using any rate:
+
 #+begin_src ruby
- flow.value_on(rate: 0.05)
+ flow.value_on('2019-01-01', rate: 0.05)
 #+end_src
 
 #+begin_example
-7408.202059517814
+6387.352638966448
 #+end_example
 
-But the discounted value can be taken as of any date and any rate and using
-any valid compounding frequency as explained above for ~TimeValues~:
+And we can use any valid compounding frequency as explained above for
+~TimeValues~:
 
 #+begin_src ruby
- flow.value_on('2021-12-25', rate: 0.15, freq: :cont)
+ flow.value_on('2019-01-01', rate: 0.05, freq: :cont)
 #+end_src
 
 #+begin_example
-2550.791663833679
+6310.652020627639
 #+end_example
 
-*** The ~#irr~ method, or IRR
+*** Computing a ~CashFlow~'s internal rate of return with ~#irr~ (IRR)
 
 One common statistic that investors want to compute with respect to a
-~CashFlow~ collection of ~TimeValues~ is the rate that would cause the NPV to
-equal zero, called the "Internal Rate of Return," or IRR.
+~CashFlow~ is the rate that would cause its NPV to equal zero, called the
+"Internal Rate of Return," or IRR.
 
 #+begin_src ruby
  flow.irr
@@ -318,52 +331,61 @@ equal zero, called the "Internal Rate of Return," or IRR.
 Here, we see that the IRR for the flow is around 23.4%.  The IRR calculation
 uses a numerical method called the Newton-Raphson method for finding the IRR,
 and it involves providing an initial guess and improving the guess at each
-step.  You can have the ~#irr~ method report the details by adding a ~verbose:
-true~ parameter to the call:
+step.  You can have the ~#irr~ method report the details of its progress by
+adding a ~verbose: true~ parameter to the call:
 
 #+begin_src ruby :results output
  flow.irr(verbose: true)
 #+end_src
 
 #+begin_example
-Iter: 1, Guess: 0.50000000; NPV: -7000.358124150653; NPV': -16235.005275863126
-Iter: 2, Guess: 0.06881085; NPV: 6508.871286784426; NPV': -52881.147555498646
-Iter: 3, Guess: 0.19189576; NPV: 1456.512225106511; NPV': -37214.016867361090
-Iter: 4, Guess: 0.23103457; NPV: 101.147353737917; NPV': -33399.895368673504
-Iter: 5, Guess: 0.23406294; NPV: 0.544028052369; NPV': -33123.491890867845
-Iter: 6, Guess: 0.23407936; NPV: 0.000015873891; NPV': -33121.999771027171
+Iter: 1, Guess: 0.12080824; NPV: 4211.368371726586; NPV': -45477.219157861255
+Iter: 2, Guess: 0.21341216; NPV: 698.480783128293; NPV': -35060.174458779577
+Iter: 3, Guess: 0.23333450; NPV: 24.689279931735; NPV': -33189.745060271911
+Iter: 4, Guess: 0.23407838; NPV: 0.032625706441; NPV': -33122.089212702573
 --------------------
-=> 0.234079364687211
+=> 0.23407838015119967
 #+end_example
 
-The ~#irr~ method arbitrarily uses 50%, i.e., 0.5, as the initial guess, but
-you can supply one with the ~guess:~ parameter:
+The ~#irr~ method uses an estimated guess for IRR based on ratio of inflows to
+outflows over the period of this CashFlow., as the initial guess, but you can
+supply a different one with the ~guess:~ parameter:
 
 #+begin_src ruby :results output
- flow.irr(guess: 0.7, verbose: true)
+ flow.irr(guess: 10, verbose: true)
 #+end_src
 
 #+begin_example
-Iter: 1, Guess: 0.70000000; NPV: -10617.222334567750; NPV': -9397.598458233975
-Iter: 2, Guess: -0.42978038; NPV: 58197.568459980481; NPV': -325821.721171744459
-Iter: 3, Guess: -0.25116255; NPV: 29793.136116804930; NPV': -152140.928346713103
-Iter: 4, Guess: -0.05533664; NPV: 13263.003678757032; NPV': -77248.321284365054
-Iter: 5, Guess: 0.11635646; NPV: 4397.988476767375; NPV': -46061.393397887812
-Iter: 6, Guess: 0.21183748; NPV: 752.867212111824; NPV': -35212.962865663074
-Iter: 7, Guess: 0.23321787; NPV: 28.558054840016; NPV': -33200.365740257657
-Iter: 8, Guess: 0.23407805; NPV: 0.043637176911; NPV': -33122.119414792280
+=> :NULL
+Iter: 1, Guess: 10.00000000; NPV: -31076.312232674067; NPV': 2466.934938552309
+Iter: 2, Guess: 22.59713491; NPV: -33396.093041699591; NPV': 1316.229437724939
+Iter: 3, Guess: 47.96968173; NPV: -34788.881906937706; NPV': 678.649928872439
+Iter: 4, Guess: 99.23157749; NPV: -35730.986737560910; NPV': 345.396370486952
+Iter: 5, Guess: 202.68080218; NPV: -36413.549104543825; NPV': 174.685865661662
+Iter: 6, Guess: 411.13240739; NPV: -36931.389566140228; NPV': 88.039337218712
+Iter: 7, Guess: 830.61977216; NPV: -37337.647293334659; NPV': 44.275823126973
+Iter: 8, Guess: 1673.91628607; NPV: -37664.643358944879; NPV': 22.235655099283
+Iter: 9, Guess: 3367.80131850; NPV: -37933.241775182250; NPV': 11.156211869213
+Iter: 10, Guess: 6767.99147443; NPV: -38157.540518410096; NPV': 5.593531711310
+Iter: 10, Guess: 0.50000000; NPV: -7000.358124150653; NPV': -16235.005275863126
+Iter: 11, Guess: 0.06881085; NPV: 6508.871286784426; NPV': -52881.147555498646
+Iter: 12, Guess: 0.19189576; NPV: 1456.512225106510; NPV': -37214.016867361090
+Iter: 13, Guess: 0.23103457; NPV: 101.147353737917; NPV': -33399.895368673504
+Iter: 14, Guess: 0.23406294; NPV: 0.544028052369; NPV': -33123.491890867845
+Iter: 15, Guess: 0.23407936; NPV: 0.000015873891; NPV': -33121.999771027171
 --------------------
-=> 0.2340793651633826
 #+end_example
 
 But be careful, a bad initial guess can cause the algorithm to spin out of
-control:
+control, but the ~#irr~ method tries to detect this and adjust the guess if
+it sees the guesses exploding:
 
 #+begin_src ruby :results output
  flow.irr(guess: 7, verbose: true)
 #+end_src
 
 #+begin_example
+=> :NULL
 Iter: 1, Guess: 7.00000000; NPV: -29649.413393915813; NPV': 3070.038462184162
 Iter: 2, Guess: 16.65766838; NPV: -32652.745358328226; NPV': 1689.984776927528
 Iter: 3, Guess: 35.97899352; NPV: -34318.471305710351; NPV': 879.290608451190
@@ -373,14 +395,14 @@ Iter: 6, Guess: 312.70754330; NPV: -36746.160852021960; NPV': 114.867018986867
 Iter: 7, Guess: 632.60929731; NPV: -37190.985548284778; NPV': 57.809166659572
 Iter: 8, Guess: 1275.94992471; NPV: -37545.745333550236; NPV': 29.046058385040
 Iter: 9, Guess: 2568.57782058; NPV: -37835.014151742158; NPV': 14.578014028063
+Iter: 10, Guess: 5163.92545016; NPV: -38075.126132745201; NPV': 7.310919531686
 Iter: 10, Guess: 0.50000000; NPV: -7000.358124150653; NPV': -16235.005275863126
 Iter: 11, Guess: 0.06881085; NPV: 6508.871286784426; NPV': -52881.147555498646
-Iter: 12, Guess: 0.19189576; NPV: 1456.512225106511; NPV': -37214.016867361090
+Iter: 12, Guess: 0.19189576; NPV: 1456.512225106510; NPV': -37214.016867361090
 Iter: 13, Guess: 0.23103457; NPV: 101.147353737917; NPV': -33399.895368673504
 Iter: 14, Guess: 0.23406294; NPV: 0.544028052369; NPV': -33123.491890867845
 Iter: 15, Guess: 0.23407936; NPV: 0.000015873891; NPV': -33121.999771027171
 --------------------
-=> 0.234079364687211
 #+end_example
 
 This initial guess of 7 caused the iterations to make no progress towards
@@ -389,7 +411,7 @@ of control and that the initial guess was not close to the default, it resets
 it to the default guess and starts over.  In this case it was able to recover
 and get the right answer.
 
-*** Modified Internal Rate of Return with ~#mirr~ (MIRR aka MWIRR)
+*** Computing a ~CashFlow~'s a modified internal rate of Return with ~#mirr~ (MIRR aka MWIRR)
 
 One assumption that the IRR method makes is that amounts coming in accumulate
 interest or value at the same rate as we should discount values going out.
@@ -401,7 +423,36 @@ different.
 (\frac{FV}{PV})^{1/y}
 \]
 
-*** Non-Standard Compounding
+#+begin_src ruby :results output
+ flow.mirr(earn_rate: 0.05, borrow_rate: 0.07, verbose: true)
+#+end_src
+
+#+begin_example
+FV of Positive Flow at earn rate (0.05): 54893.43158227642
+PV of Negative Flow at borrow rate (0.07): 42710.47613751121
+Years from first to last flow: 1.8333333333333333
+Modified internal rate of return: 0.14669228773362963
+=> 0.14669228773362963
+#+end_example
+
+The ~earn_rate~ defaults to 5% and the ~borrow_rate~ defaults to 7% as in the
+example, but if your using a credit card to borrow, you will surely want to
+supply better values:
+
+#+begin_src ruby :results output
+ flow.mirr(earn_rate: 0.05, borrow_rate: 0.21, verbose: true)
+#+end_src
+
+#+begin_example
+FV of Positive Flow at earn rate (0.05): 54893.43158227642
+PV of Negative Flow at borrow rate (0.21): 42253.944402704736
+Years from first to last flow: 1.8333333333333333
+Modified internal rate of return: 0.1534336394600424
+=> 0.1534336394600424
+#+end_example
+
+
+*** Using Non-Standard Compounding
 
 The classical NPV analysis always assumes annual compounding of interest, but
 other assumptions are plausible.  So, the ~#irr~ method can be given a ~freq:~
@@ -414,12 +465,13 @@ Like continuous compounding:
 #+end_src
 
 #+begin_example
-Iter: 1, Guess: 0.50000000; NPV: -9786.277460641681; NPV': -27675.279951834360
-Iter: 2, Guess: 0.14638922; NPV: 2733.069047953215; NPV': -44682.615719737325
-Iter: 3, Guess: 0.20755549; NPV: 113.431497147067; NPV': -41032.297863861058
-Iter: 4, Guess: 0.21031993; NPV: 0.216918454284; NPV': -40875.476787591077
+Iter: 1, Guess: 0.12080824; NPV: 3896.856472004197; NPV': -46316.936578674700
+Iter: 2, Guess: 0.20494283; NPV: 220.828976050425; NPV': -41181.135578639689
+Iter: 3, Guess: 0.21030522; NPV: 0.818443834624; NPV': -40876.309787513594
+Iter: 4, Guess: 0.21032524; NPV: 0.000011346530; NPV': -40875.176412455738
 --------------------
-=> 0.21032523876545936
+=> 0.21032523850736937
+:org_babel_ruby_eoe
 #+end_example
 
 Or, egad, simple interest:
@@ -427,6 +479,23 @@ Or, egad, simple interest:
 #+begin_src ruby :results output
  flow.irr(freq: 0, verbose: true)
 #+end_src
+
+#+RESULTS:
+#+begin_example
+Iter: 1, Guess: 0.12080824; NPV: 4323.380986093362; NPV': 81677.018835546070
+Iter: 2, Guess: 0.06787559; NPV: 6595.403324999257; NPV': 67791.417164434592
+Iter: 3, Guess: -0.02941406; NPV: 11689.537313470391; NPV': 50659.077239933038
+Iter: 4, Guess: -0.26016317; NPV: 33692.699830123915; NPV': 29997.484922976786
+Iter: 5, Guess: -1.38334733; NPV: -84822.324157937343; NPV': 7791.568606564050
+Iter: 6, Guess: 9.50307727; NPV: -33198.127092559436; NPV': 5850.688659538312
+Iter: 7, Guess: 15.17730282; NPV: -35293.524919488984; NPV': 2838.334674129928
+Iter: 8, Guess: 27.61189175; NPV: -37160.631861120106; NPV': 207.839657575246
+Iter: 9, Guess: 206.40660444; NPV: -39568.575581203790; NPV': 2.252961512096
+Iter: 10, Guess: 17769.32340030; NPV: -39994.869345812171; NPV': 0.000288983689
+ArgumentError: unknown keyword: :guess
+from /home/ded/src/fat_fin/lib/fat_fin/cash_flow.rb:191:in `birr'
+:org_babel_ruby_eoe
+#+end_example
 
 #+begin_example
 Iter: 1, Guess: 0.50000000; NPV: -17500.000000000000; NPV': -55000.000000000000
