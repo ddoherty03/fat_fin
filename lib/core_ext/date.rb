@@ -5,28 +5,29 @@ module FatFin
   # month-basaed financial calulations.
   module DateExtension
     refine Date do
+      # Return the number of months between self and other date.
       def month_diff(other_date, whole: false)
         case other_date
         when Date
           # Put dates in d0, d1 order
           if self < other_date
-            k = -1
-            d0 = self
-            d1 = other_date
+            factor = -1
+            date0 = self
+            date1 = other_date
           else
-            k = 1
-            d0 = other_date
-            d1 = self
+            factor = 1
+            date0 = other_date
+            date1 = self
           end
           # If both dates are last of month, return only
           # whole months
           whole = true if last_of_month? && other_date.last_of_month?
 
           # Count number of years
-          m = (d1.year - d0.year) * 12
-          m += (d1.month - d0.month)
-          m += (d1.day - d0.day) / 30.0 unless whole
-          k * m
+          months = (date1.year - date0.year) * 12
+          months += (date1.month - date0.month)
+          months += (date1.day - date0.day) / 30.0 unless whole
+          factor * months
         else
           raise ArgumentError
         end
@@ -37,8 +38,7 @@ module FatFin
       end
 
       def leap?
-        y = year
-        ((y % 4).zero? && !(y % 100).zero?) || (y % 400).zero?
+        ((year % 4).zero? && !(year % 100).zero?) || (year % 400).zero?
       end
 
       def last_of_feb?
@@ -48,15 +48,9 @@ module FatFin
       end
 
       def last_of_month?
-        if [1, 3, 5, 7, 8, 10, 12].include?(month) && day == 31
-          true
-        elsif [4, 6, 9, 11].include?(month) && day == 30
-          true
-        elsif last_of_feb?
-          true
-        else
-          false
-        end
+        ([1, 3, 5, 7, 8, 10, 12].include?(month) && day == 31) ||
+          ([4, 6, 9, 11].include?(month) && day == 30) ||
+          last_of_feb?
       end
     end
   end
