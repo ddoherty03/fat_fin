@@ -147,6 +147,20 @@ module FatFin
       while (npv = value_on(first_date, rate: try_irr, freq: freq)).abs > eps
         return Float::NAN if iters > 100
 
+        npv_prime = value_on_prime(first_date, rate: try_irr, freq: freq)
+        if npv_prime.is_a?(Complex)
+          if verbose
+            printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>s\n",
+                   { iters: iters, try_irr: try_irr, npv: npv, npv_prime: "Complex" }
+          end
+          return Float::NAN
+        end
+
+        if verbose
+          printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
+                 { iters: iters, try_irr: try_irr, npv: npv, npv_prime: npv_prime }
+        end
+
         if npv.is_a?(Complex) && !recovery_tried
           # If we get a Complex npv, flip the sign of the guess and start
           # over.  But only try this onece.
@@ -155,18 +169,11 @@ module FatFin
           next
         end
 
-        npv_prime = value_on_prime(first_date, rate: try_irr, freq: freq)
-        return Float::NAN if npv_prime.is_a?(Complex)
-
         new_irr = try_irr - npv / npv_prime
         if new_irr > 10_000 && guess.abs > 1.0
           try_irr = 0.5
           recovery_tried = true
           next
-        end
-        if verbose
-          printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
-                 { iters: iters, try_irr: try_irr, npv: npv, npv_prime: npv_prime }
         end
         break if (new_irr - try_irr).abs <= eps
 
