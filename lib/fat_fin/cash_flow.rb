@@ -61,6 +61,18 @@ module FatFin
       @time_values.keys.sort
     end
 
+    def first_date
+      time_values.first.date
+    end
+
+    def last_date
+      time_values.last.date
+    end
+
+    def years
+      last_date.month_diff(first_date) / 12.0
+    end
+
     # Return the number of TimeValues in this CashFlow.
     def size
       time_values.size
@@ -69,6 +81,10 @@ module FatFin
     # Return whether this CashFlow has no TimeValues, i.e., is empty.
     def empty?
       size.zero?
+    end
+
+    def tv_sum
+      time_values.sum(&:amount)
     end
 
     # Return the Period from the first to the last TimeValue in this CashFlow.
@@ -184,7 +200,6 @@ module FatFin
 
       fv = pos_flows.value_on(last_date, rate: earn_rate, freq: freq)
       pv = -neg_flows.value_on(first_date, rate: borrow_rate, freq: freq)
-      years = last_date.month_diff(first_date) / 12.0
       mirr = (fv / pv)**(1 / years) - 1.0
       if verbose
         puts "FV of Positive Flow at earn rate (#{earn_rate}): #{fv}"
@@ -193,14 +208,6 @@ module FatFin
         puts "Modified internal rate of return: #{mirr}"
       end
       mirr
-    end
-
-    def first_date
-      time_values.first.date
-    end
-
-    def last_date
-      time_values.last.date
     end
 
     private
