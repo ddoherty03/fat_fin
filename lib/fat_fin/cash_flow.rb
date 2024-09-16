@@ -143,17 +143,25 @@ module FatFin
       recovery_tried = false
       iters = 1
       while (npv = value_on(first_date, rate: try_irr, freq: freq)).abs > eps
-        return Float::NAN if iters > 100
+        if iters > 100 && !recovery_tried
+          puts "Reached 100 iterations: switching to binary search algorithm ... " if verbose
+          return birr(eps: eps, freq: freq, verbose: verbose)
+        end
 
         npv_prime = value_on_prime(first_date, rate: try_irr, freq: freq)
         if npv_prime.is_a?(Complex)
           if verbose
+            puts "NPV' turned Complex': switching to binary search algorithm ... " if verbose
             printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>s\n",
                    { iters: iters, try_irr: try_irr, npv: npv, npv_prime: "Complex" }
           end
-          return Float::NAN
+          return birr(eps: eps, freq: freq, verbose: verbose)
         end
 
+        if npv_prime.abs < eps
+          puts "Derivative of NPV near zero: switching to binary search algorithm ... "
+          return birr(eps: eps, freq: freq, verbose: verbose)
+        end
         if verbose
           printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>4.12f\n",
                  { iters: iters, try_irr: try_irr, npv: npv, npv_prime: npv_prime }
