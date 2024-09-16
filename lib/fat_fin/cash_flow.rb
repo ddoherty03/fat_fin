@@ -191,13 +191,14 @@ module FatFin
     end
 
     def birr(eps: 0.000001, lo_guess: -0.9999, hi_guess: 1.0, freq: 1, verbose: false)
-      lo = lo_guess
-      hi = hi_guess
+      lo, hi = lo_hi_guesses(freq: freq)
+      return Float::NAN if unless lo
+
       lo_npv = value_on(first_date, rate: lo_guess, freq: freq)
       hi_npv = value_on(first_date, rate: hi_guess, freq: freq)
 
       iters = 0
-      max_iters = 100
+      max_iters = 150
 
       if verbose
         printf "Iter: %<iters>d, Lo: %<lo>4.8f; Hi: %<hi>4.8f; LoNPV: %<lo_npv>4.12f; HiNPV: %<hi_npv>4.12f\n",
@@ -208,18 +209,14 @@ module FatFin
         raise ArgumentError, "NPV at lo_guess and hi_guess must have opposite signs"
       end
 
+      result = Float::NAN
       while iters < max_iters
-        if verbose
-          printf "Iter: %<iters>d, Lo: %<lo>4.8f; Hi: %<hi>4.8f; LoNPV: %<lo_npv>4.12f; HiNPV: %<hi_npv>4.12f\n",
-                 { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
-        end
-
         # Calculate the midpoint
         mid = (lo + hi) / 2.0
         mid_npv = value_on(first_date, rate: mid, freq: freq)
 
         # Check if the NPV at midpoint is close enough to zero
-        return mid if mid_npv.abs < eps
+        result = mid if mid_npv.abs < eps
 
         # Decide which subinterval to choose for the next iteration
         if (lo_npv * mid_npv).negative?
@@ -229,11 +226,15 @@ module FatFin
           lo = mid
           lo_npv = mid_npv
         end
-
+        result = mid if (hi - lo).abs < eps
+        if verbose
+          printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f]; LoNPV: %<lo_npv>4.5f; HiNPV: %<hi_npv>4.5f; MidNPV: %<mid_npv>4.5f\n",
+                 { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
+        end
         iters += 1
       end
-
-      raise "IRR calculation did not converge after #{max_iterations} iterations."
+      puts "--------------------" if verbose
+      result
     end
 
     # Compute the Modified Internal Rate of Return (MIRR), also called the
@@ -286,6 +287,41 @@ module FatFin
       return 0.5 if out_sum.zero?
 
       ((in_sum / out_sum)**(1.0 / years)) - 1.0
+    end
+
+    # Look for a low and high guess across which the NPV changes sign
+    def lo_hi_guesses(freq: 1)
+      max_iters = 10
+      lo = initial_guess - 0.5
+      hi = initial_guess + 0.5
+      lo_npv = value_on(first_date, rate: lo, freq: freq)
+      hi_npv = value_on(first_date, rate: hi, freq: freq)
+      if (lo_npv.signum * hi_npv.signum).negative?
+        # Different signs
+        return [lo, hi]
+      elsif lo_npv < 0.0 && hi_npv < 0.0
+        # Both negative.  Increase hi until hi_npv positive
+        iters = 1
+        while hi_npv < 0.0 && iters <= max_iters
+          hi += 0.1
+          hi_npv = value_on(first_date, rate: hi, freq: freq)
+          iters += 1
+        end
+      elsif lo_npv > 0.0 && hi_npv > 0.0
+        # Both positive. Decrease lo until lo_npv negative
+        iters = 1
+        while lo_npv > 0.0 && iters <= max_iters
+          lo -= 0.1
+          lo_npv = value_on(first_date, rate: lo, freq: freq)
+          iters += 1
+        end
+      else
+        # Both zero?  Return them both as guesses.  Do nothing, the initial
+        # guesses will get returned.
+        true
+      end
+      return nil if (lo_npv.signum * hi_npv.signum).positive?
+      [lo, hi]
     end
 
     # Return the /derivative/ of the net present value of the CashFlow as of
