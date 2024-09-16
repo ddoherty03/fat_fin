@@ -8,9 +8,7 @@ module FatFin
 
     def initialize(time_values = [])
       time_values = time_values.to_a
-      unless time_values.all? { |tv| tv.is_a?(FatFin::TimeValue) }
-        raise ArgumentError, "All CashFlow components must be TimeValues"
-      end
+      raise ArgumentError, "All CashFlow components must be TimeValues" unless time_values.all?(FatFin::TimeValue)
 
       # Build Hash keyed on TimeValue dates.
       @time_values = {}
@@ -28,7 +26,7 @@ module FatFin
     def add_time_value(tval)
       raise ArgumentError, "CashFlow component must be a TimeValue" unless tval.is_a?(FatFin::TimeValue)
 
-      if @time_values.keys.include?(tval.date)
+      if @time_values.key?(tval.date)
         @time_values[tval.date].merge(tval)
       else
         @time_values[tval.date] = tval
@@ -169,7 +167,7 @@ module FatFin
           next
         end
 
-        new_irr = try_irr - npv / npv_prime
+        new_irr = try_irr - (npv / npv_prime)
         if new_irr > 10_000 && guess.abs > 1.0
           try_irr = 0.5
           recovery_tried = true
@@ -216,7 +214,7 @@ module FatFin
         return mid if mid_npv.abs < eps
 
         # Decide which subinterval to choose for the next iteration
-        if lo_npv * mid_npv < 0
+        if (lo_npv * mid_npv).negative?
           hi = mid
           hi_npv = mid_npv
         else
@@ -254,7 +252,7 @@ module FatFin
 
       fv = pos_flows.value_on(last_date, rate: earn_rate, freq: freq)
       pv = -neg_flows.value_on(first_date, rate: borrow_rate, freq: freq)
-      mirr = (fv / pv)**(1 / years) - 1.0
+      mirr = ((fv / pv)**(1 / years)) - 1.0
       if verbose
         puts "FV of Positive Flow at earn rate (#{earn_rate}): #{fv}"
         puts "PV of Negative Flow at borrow rate (#{borrow_rate}): #{pv}"
@@ -279,7 +277,7 @@ module FatFin
       out_sum = total_outflows.tv_sum.abs.to_f
       return 0.5 if out_sum.zero?
 
-      (in_sum / out_sum)**(1.0 / years) - 1.0
+      ((in_sum / out_sum)**(1.0 / years)) - 1.0
     end
 
     # Return the /derivative/ of the net present value of the CashFlow as of

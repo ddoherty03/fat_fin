@@ -55,7 +55,7 @@ module FatFin
         expect(tv.value_on("2025-01-01", rate: 0.10, freq: 6)).to be_within(eps).of(55_557.494589)
       end
 
-      it "computes future value at any date with continuous compounding " do
+      it "computes future value at any date with continuous compounding" do
         # About 25.5 months after payment, or 2.125 years.  With contiuous
         # compunding at a rate of 0.10, the future value should be e^(0.1*2.125) = 1.23676611357
         # 1.23676611357 * 45_000.33 = 55654.8832435
@@ -70,15 +70,15 @@ module FatFin
         expect(fut_tv.value_on("2022-11-16", rate: 0.10)).to be_within(eps).of(45_000.330764)
       end
 
-      it "computes discounted value at any date with simple interest, no-compounding " do
+      it "computes discounted value at any date with simple interest, no-compounding" do
         # About 25.5 months before payment, or 2.125 years.  With simple
         # interest, the discounted value should be (1 + 0.1 * 2.125) = 1.2125
         # 55654.8832435 / 1.2125 = 45900.9346338
         tv1 = TimeValue.new(55_654.8832435, date: "2025-01-01")
-        expect(tv1.value_on("2022-11-16", rate: 0.10, freq: 0)).to be_within(eps).of(45900.9346338)
+        expect(tv1.value_on("2022-11-16", rate: 0.10, freq: 0)).to be_within(eps).of(45_900.9346338)
       end
 
-      it "computes discounted value at any date with continuous compounding " do
+      it "computes discounted value at any date with continuous compounding" do
         # About 25.5 months after payment, or 2.125 years.  With contiuous
         # compunding at a rate of 0.10, the future value should be e^(0.1*2.125) = 1.23676611357
         # 1.23676611357 * 45_000.33 = 55654.8832435

@@ -90,7 +90,7 @@ module FatFin
         ((amount / from_tv.amount) - 1.0) / years
       else
         periods = freq * years
-        freq * ((amount / from_tv.amount)**(1 / periods) - 1.0)
+        freq * (((amount / from_tv.amount)**(1 / periods)) - 1.0)
       end
     end
 
@@ -113,7 +113,7 @@ module FatFin
         if years.positive?
           amount * years
         else
-          -(amount * years) / (1 + rate * years)**2
+          -(amount * years) / ((1 + (rate * years))**2)
         end
       else
         # Compund interest, accumulate interest freq times per year
@@ -124,7 +124,7 @@ module FatFin
         # This is the derivative of the value_on (NPV) of amount with respect to
         # rate.  It will be used in improving guesses using the Newton-Raphson
         # interation in the IRR calculation.
-        ((periods - 1) * amount) * (1 + rate_per_period)**(periods - 1)
+        ((periods - 1) * amount) * ((1 + rate_per_period)**(periods - 1))
       end
     end
   end

@@ -2,6 +2,6 @@
 
 RSpec.describe FatFin do
   it "has a version number" do
-    expect(FatFin::VERSION).not_to be nil
+    expect(FatFin::VERSION).not_to be_nil
   end
 end
