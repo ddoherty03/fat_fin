@@ -113,6 +113,53 @@ module FatFin
       it "barfs with all negative amounts" do
         expect(neg_flow.irr(eps: eps)).to be(Float::NAN)
       end
+
+      describe "README Example" do
+        let(:rm_flow) do
+          start_date = Date.parse("2022-01-15")
+          tvs = [
+            FatFin::TimeValue.new(-40_000, date: start_date),
+            FatFin::TimeValue.new(-5_000, date: start_date + 18.months)
+          ]
+          flw = FatFin::CashFlow.new(tvs)
+          # Add additional TimeValues representing the earnings with the << shovel
+          # operator
+          earn_date = start_date + 1.month
+          20.times do |k|
+            flw << FatFin::TimeValue.new(2_000, date: earn_date + k.months)
+          end
+
+          # Add the salvage value at the end with the add_time_value method.
+          flw.add_time_value(FatFin::TimeValue.new(15_000, date: earn_date + 21.months))
+          flw
+        end
+
+        it "does README example" do
+          expect(rm_flow.irr(verbose: true)).to be_within(eps).of(0.23407838)
+        end
+
+        it "does README example with frequency 0" do
+          expect(rm_flow.irr(guess: 0.5, freq: 0, verbose: true)).to be_within(eps).of(0.24332)
+          expect(rm_flow.irr(freq: 0, verbose: true)).to be_within(eps).of(0.24332)
+        end
+      end
+    end
+
+    describe "BIRR" do
+      it "computes BIRR" do
+        expect(flow.birr(eps: eps, verbose: true)).to be_within(eps).of(0.1702)
+      end
+
+      it "computes negative BIRR" do
+        bad_flow = flow << TimeValue.new(-3_000, date: '2024-09-14')
+        irr = bad_flow.birr(lo_guess: -0.5, hi_guess: -0.02, verbose: true)
+        # This expectation value comes from Libreoffice XIRR function on the
+        # same data.
+        expect(irr).to be_within(eps).of(-0.0342907057)
+
+        # irr = bad_flow.birr(eps: eps, verbose: true)
+        expect(irr).to be_within(eps).of(-0.0342907057)
+      end
     end
 
     describe "MIRR" do
