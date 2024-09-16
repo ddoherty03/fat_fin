@@ -135,11 +135,12 @@ module FatFin
     # example, a CashFlow with all positive or all negative TimeValues will
     # never yeild an NPV os zero.  You can print the progress of the
     # algorithim by setting the verbose: parameter (default false) to true.
-    def irr(eps: 0.000001, guess: 0.5, freq: 1, verbose: false)
+    def irr(eps: 0.000001, guess: nil, freq: 1, verbose: false)
       return 0.0 if time_values.empty?
       return Float::NAN unless mixed_signs?
 
-      first_date = time_values.first&.date || Date.today
+      guess ||= initial_guess
+
       try_irr = guess
       recovery_tried = false
       iters = 1
@@ -261,6 +262,17 @@ module FatFin
     def pos_neg_partition
       pos, neg = time_values.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
       [CashFlow.new(pos), CashFlow.new(neg)]
+    end
+
+    # Return an estimated guess for IRR based on ratio of inflows to outflows
+    # over the period of this CashFlow.
+    def initial_guess
+      total_inflows, total_outflows = pos_neg_partition
+      in_sum = total_inflows.tv_sum.to_f
+      out_sum = total_outflows.tv_sum.abs.to_f
+      return 0.5 if out_sum.zero?
+
+      (in_sum / out_sum)**(1.0 / years) - 1.0
     end
 
     # Return the /derivative/ of the net present value of the CashFlow as of
