@@ -35,9 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "fat_core"
   spec.add_dependency "fat_period"
 
-  spec.add_development_dependency "debug"
-  spec.add_development_dependency "rspec"
-
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end
