@@ -87,7 +87,7 @@ module FatFin
 
     # Return the Period from the first to the last TimeValue in this CashFlow.
     def period
-      return nil if empty?
+      return if empty?
 
       Period.new(first_date, last_date)
     end
@@ -328,7 +328,7 @@ module FatFin
         # guesses will get returned.
         true
       end
-      return nil if (lo_npv.signum * hi_npv.signum).positive?
+      return if (lo_npv.signum * hi_npv.signum).positive?
 
       [lo, hi]
     end
