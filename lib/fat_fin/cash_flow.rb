@@ -139,6 +139,8 @@ module FatFin
 
       guess ||= initial_guess
 
+      puts "Newton-Raphson search:"
+      puts "-" * 30 if verbose
       try_irr = guess
       recovery_tried = false
       iters = 1
@@ -186,7 +188,7 @@ module FatFin
         try_irr = new_irr
         iters += 1
       end
-      puts "--------------------" if verbose
+      puts "-" * 30 if verbose
       try_irr
     end
 
@@ -201,7 +203,9 @@ module FatFin
       max_iters = 150
 
       if verbose
-        printf "Iter: %<iters>d, Lo: %<lo>4.8f; Hi: %<hi>4.8f; LoNPV: %<lo_npv>4.12f; HiNPV: %<hi_npv>4.12f\n",
+        puts "Binary search:"
+        puts "-" * 30
+        printf "Iter: %<iters>d Rate[%<lo>4.8f, %<hi>4.8f]; NPV[%<lo_npv>4.12f, %<hi_npv>4.12f]\n",
                { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
       end
 
@@ -232,12 +236,12 @@ module FatFin
         end
 
         if verbose
-          printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f]; LoNPV: %<lo_npv>4.5f; HiNPV: %<hi_npv>4.5f; MidNPV: %<mid_npv>4.5f\n",
+          printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f, %<hi_npv>4.5f] Mid: %<mid_npv>4.5f\n",
                  { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
         end
         iters += 1
       end
-      puts "--------------------" if verbose
+      puts "-" * 30 if verbose
       result
     end
 
@@ -325,6 +329,7 @@ module FatFin
         true
       end
       return nil if (lo_npv.signum * hi_npv.signum).positive?
+
       [lo, hi]
     end
 
