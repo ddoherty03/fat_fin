@@ -226,7 +226,11 @@ module FatFin
           lo = mid
           lo_npv = mid_npv
         end
-        result = mid if (hi - lo).abs < eps
+        if (hi - lo).abs < eps
+          result = mid
+          break
+        end
+
         if verbose
           printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f]; LoNPV: %<lo_npv>4.5f; HiNPV: %<hi_npv>4.5f; MidNPV: %<mid_npv>4.5f\n",
                  { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
