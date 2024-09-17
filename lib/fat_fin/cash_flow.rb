@@ -192,7 +192,7 @@ module FatFin
 
     def birr(eps: 0.000001, lo_guess: -0.9999, hi_guess: 1.0, freq: 1, verbose: false)
       lo, hi = lo_hi_guesses(freq: freq)
-      return Float::NAN if unless lo
+      return Float::NAN unless lo
 
       lo_npv = value_on(first_date, rate: lo_guess, freq: freq)
       hi_npv = value_on(first_date, rate: hi_guess, freq: freq)
