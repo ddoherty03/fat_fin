@@ -419,9 +419,9 @@ However, this is not always the case.  The rate at which one may borrow values
 going out and the rate at which one may earn on values coming in may be quite
 different.
 
-\[
+$$
 (\frac{FV}{PV})^{1/y}
-\]
+$$
 
 #+begin_src ruby :results output
  flow.mirr(earn_rate: 0.05, borrow_rate: 0.07, verbose: true)
