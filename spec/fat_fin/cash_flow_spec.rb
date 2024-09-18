@@ -142,6 +142,13 @@ module FatFin
           expect(rm_flow.irr(guess: 0.5, freq: 0, verbose: true)).to be_within(eps).of(0.24332)
           expect(rm_flow.irr(freq: 0, verbose: true)).to be_within(eps).of(0.24332)
         end
+
+        it "computes #within-ed flow IRR" do
+          q3 = Period.parse('2022')
+          flow3q = flow.within(q3)
+          expect(flow3q.irr(verbose: true)).to be_within(eps).of(-0.886497)
+          expect(flow3q.mirr(verbose: true)).to be_within(eps).of(-0.8808517)
+        end
       end
     end
 
