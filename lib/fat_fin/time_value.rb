@@ -58,23 +58,27 @@ module FatFin
       years = on_date.month_diff(date) / 12.0
 
       # Now the calculation
-      if freq == :cont
-        # Continuous compounding
-        amount * Math.exp(rate * years)
-      elsif freq.zero?
-        # Simple interest, just rate times number of years
-        if years.positive?
-          amount * (1.0 + (rate * years))
+      result =
+        if freq == :cont
+          # Continuous compounding
+          amount * Math.exp(rate * years)
+        elsif freq.zero?
+          # Simple interest, just rate times number of years
+          if years.positive?
+            amount * (1.0 + (rate * years))
+          else
+            amount / (1.0 + (rate * -years))
+          end
         else
-          amount / (1.0 + (rate * -years))
+          # Compund interest, accumulate interest freq times per year
+          periods = years * freq
+          # Rate per period
+          rate_per_period = rate / freq
+          amount * ((1.0 + rate_per_period)**periods)
         end
-      else
-        # Compund interest, accumulate interest freq times per year
-        periods = years * freq
-        # Rate per period
-        rate_per_period = rate / freq
-        amount * ((1.0 + rate_per_period)**periods)
-      end
+      return Float::NAN if result.is_a?(Complex)
+
+      result
     end
 
     # Compute the "compound annual growth rate" that would have been required
