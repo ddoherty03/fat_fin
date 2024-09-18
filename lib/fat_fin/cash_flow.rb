@@ -205,7 +205,7 @@ module FatFin
       if verbose
         puts "Binary search:"
         puts "-" * 30
-        printf "Iter: %<iters>d Rate[%<lo>4.8f, %<hi>4.8f]; NPV[%<lo_npv>4.12f, %<hi_npv>4.12f]\n",
+        printf "Iter: %<iters>d Rate[%<lo>4.8f, %<hi>4.8f]; NPV[%<lo_npv>4.12f {} %<hi_npv>4.12f]\n",
                { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
       end
 
@@ -235,11 +235,11 @@ module FatFin
           break
         end
 
+        iters += 1
         if verbose
-          printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f, %<hi_npv>4.5f] Mid: %<mid_npv>4.5f\n",
+          printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f {%<mid_npv>4.5f} %<hi_npv>4.5f]\n",
                  { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
         end
-        iters += 1
       end
       puts "-" * 30 if verbose
       result
@@ -304,6 +304,7 @@ module FatFin
       hi = initial_guess + 0.5
       lo_npv = value_on(first_date, rate: lo, freq: freq)
       hi_npv = value_on(first_date, rate: hi, freq: freq)
+
       if (lo_npv.signum * hi_npv.signum).negative?
         # Different signs
         return [lo, hi]
