@@ -420,7 +420,7 @@ going out and the rate at which one may earn on values coming in may be quite
 different.
 
 $$
-(\frac{FV}{PV})^{1/y}
+\left(\frac{FV}{PV}\right)^{1/y}
 $$
 
 #+begin_src ruby :results output
