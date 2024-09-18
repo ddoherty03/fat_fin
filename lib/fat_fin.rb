@@ -3,11 +3,11 @@
 require "debug"
 
 require "date"
-require "fat_core/all"
-require "fat_core/date"
-require "fat_period"
-
-require_relative "fat_fin/version"
+class << Date
+  def ensure(other)
+    ensure_date(other)
+  end
+end
 
 # Namespace module for the financial classes and methods implemented in this
 # library.
