@@ -18,7 +18,7 @@ module FatFin
       # annuity
 
       k = 1.0 / (1.0 + rate)
-      pv = k * (1.0 - k ** periods) / (1.0 - k)
+      pv = k * (1.0 - k**periods) / (1.0 - k)
       pv * amount
     end
   end

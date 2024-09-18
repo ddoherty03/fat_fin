@@ -21,62 +21,85 @@ module FatFin
       elsif args[:maturity] && (args[:issue].nil? && args[:term].nil?)
         # Maturity defined, compute term and issue
         @term = 30
-        @issue_date = Date.new(@maturity.year - @term,
-                               @maturity.month, @maturity.day)
+        @issue_date = Date.new(
+          @maturity.year - @term,
+          @maturity.month,
+          @maturity.day,
+        )
       elsif args[:issue] && (args[:maturity].nil? && args[:term].nil?)
         # Issue defined, compute maturity and term
         @term = 30
-        @maturity = Date.new(@issue_date.year + @term,
-                             @issue_date.month, @issue_date.day)
+        @maturity = Date.new(
+          @issue_date.year + @term,
+          @issue_date.month,
+          @issue_date.day,
+        )
       elsif args[:term] && (args[:maturity].nil? && args[:issue].nil?)
         # Term defined, compute maturity and issue
         # Assume issue is today
         @term = args[:term].to_i
         @issue_date = Date.today
-        @maturity = Date.new(@issue_date.year + @term,
-                             @issue_date.month, @issue_date.day)
+        @maturity = Date.new(
+          @issue_date.year + @term,
+          @issue_date.month,
+          @issue_date.day,
+        )
       elsif (args[:maturity] && args[:term]) && !args[:issue]
         # Maturity and term defined, compute issue
-        @issue_date = Date.new(@maturity.year - @term,
-                               @maturity.month, @maturity.day)
+        @issue_date = Date.new(
+          @maturity.year - @term,
+          @maturity.month,
+          @maturity.day,
+        )
       elsif (args[:issue] && args[:term]) && !args[:maturity]
         # Issue and term defined, compute maturity
-        @maturity = Date.new(@issue_date.year + @term,
-                             @issue_date.month, @issue_date.day)
+        @maturity = Date.new(
+          @issue_date.year + @term,
+          @issue_date.month,
+          @issue_date.day,
+        )
 
       elsif (args[:issue] && args[:maturity]) && !args[:term]
         # Issue and maturity defined, compute term
-        if @maturity.month == @issue_date.month &&
-           @maturity.day == @issue_date.day
+        @term = if @maturity.month == @issue_date.month &&
+                   @maturity.day == @issue_date.day
           # Make @term and integer if month and day are the same
-          @term = @maturity.year - @issue_date.year
+          @maturity.year - @issue_date.year
         else
           # Else, punt
-          @term = (@maturity - @issue_date) / 365.25
+          (@maturity - @issue_date) / 365.25
         end
       elsif args[:issue] && args[:maturity] && args[:term]
         # All three defined
         nil
       else
         # None defined
-        raise(ArgumentError,
-              'Bond.new must define at least one of :maturity, :issue, or :term.')
+        raise(
+          ArgumentError,
+          'Bond.new must define at least one of :maturity, :issue, or :term.',
+        )
       end
       # Now check @term, @maturity, and @issue_date for sanity
-      unless @maturity > @issue_date
-        raise(ArgumentError,
-              "Bond maturity #{@maturity} must be later than issue #{@issue_date}.")
+      if @maturity <= @issue_date
+        raise(
+          ArgumentError,
+          "Bond maturity #{@maturity} must be later than issue #{@issue_date}.",
+        )
       end
-      unless @term > 0 && @term <= 100
-        raise(ArgumentError,
-              "Bond term (#{@term}) not credible.  Use life of Bond in years.")
+      if @term <= 0 || @term > 100
+        raise(
+          ArgumentError,
+          "Bond term (#{@term}) not credible.  Use life of Bond in years.",
+        )
       end
 
       #################################################
       # Coupon
       if args[:coupon] < 0.0 || args[:coupon] > 1.0
-        raise(ArgumentError,
-              'Nonsense coupon rate (#{args[:coupon]}).  Use decimals, not percentages.')
+        raise(
+          ArgumentError,
+          'Nonsense coupon rate (#{args[:coupon]}).  Use decimals, not percentages.',
+        )
       end
       @coupon = args[:coupon]
 
@@ -85,13 +108,16 @@ module FatFin
       if args[:face] <= 0
         raise(ArgumentError, "Face or bond negative (#{args[:face]}.")
       end
+
       @face = args[:face]
 
       # Frequency
       args[:frequency] = args[:frequency] || 2
       unless [1, 2, 3, 4, 6, 12].include?(args[:frequency])
-        raise(ArgumentError,
-              "Coupon frequency (#{args[:frequency]}) not a divisor of 12.  Suspect.")
+        raise(
+          ArgumentError,
+          "Coupon frequency (#{args[:frequency]}) not a divisor of 12.  Suspect.",
+        )
       end
       @freq = args[:frequency]
 
@@ -159,8 +185,10 @@ module FatFin
           .value_on(date: nxt_coup_date, rate: yld, freq: freq)
       # Then discount as a point payment back to settlement date.
       pv_face =
-        CashFlowPoint.new(amount: pv_face,
-                          payout_date: nxt_coup_date)
+        CashFlowPoint.new(
+          amount: pv_face,
+          payout_date: nxt_coup_date,
+        )
           .value_on(date: settle_date, rate: yld, freq: 0)
 
       # Portion of the first coupon that belongs to seller of the bond
@@ -178,9 +206,7 @@ module FatFin
       # Step forward by days until we hit the day of maturity
       next_coup_date += 1 while next_coup_date.day != maturity.day
       # Step forward by months until we hit a coupon month
-      until maturity.month_diff(next_coup_date) % mpp == 0
-        next_coup_date = next_coup_date >> 1
-      end
+      next_coup_date >>= 1 until maturity.month_diff(next_coup_date) % mpp == 0
       next_coup_date
     end
 
@@ -195,6 +221,7 @@ module FatFin
       if price < 0
         raise ArgumentError, "Negative price (#{price})."
       end
+
       settle_date = Date.ensure(settle_date)
 
       unless [0, 1, 2, 3, 4].include?(convention)
@@ -215,12 +242,28 @@ module FatFin
       until low.nearly?(high, places) || iterations >= max_iter
         iterations += 1
         mid = (low + high) / 2.0
-        computed_price = price(yld: mid, settle_date: settle_date,
-                               convention: convention)
+        computed_price = price(
+          yld: mid,
+          settle_date: settle_date,
+          convention: convention,
+        )
         if verbose
-          printf("Iter [%02d]: yld [%0.*f, <%0.*f>, %0.*f]; price [%0*.*f]; target [%0*.*f].\n",
-                 iterations, places, low, places, mid, places, high, places + 4,
-                 places, computed_price, places + 4, places, price)
+          printf(
+            "Iter [%02d]: yld [%0.*f, <%0.*f>, %0.*f]; price [%0*.*f]; target [%0*.*f].\n",
+            iterations,
+            places,
+            low,
+            places,
+            mid,
+            places,
+            high,
+            places + 4,
+            places,
+            computed_price,
+            places + 4,
+            places,
+            price,
+          )
         end
         if computed_price > price
           low = mid
@@ -232,7 +275,7 @@ module FatFin
     end
 
     def macaulay_duration(yld: 100.0, settle_date: maturity, convention: 0,
-                          verbose: false)
+      verbose: false)
       # Return the "Macaulay duration" of a bond, which is
       # calculated as the weighted average of each cash
       # payment, each weighted by the number of years to maturity
@@ -297,7 +340,7 @@ module FatFin
       # Debug
       if verbose
         puts "Per period yld: #{r}"
-        puts "Per period coupon payment: \$#{coupon_pmt}"
+        puts "Per period coupon payment: $#{coupon_pmt}"
         puts "The Macaulay duration is #{moment / mprice}\n"
       end
 
@@ -307,15 +350,19 @@ module FatFin
     # Return the "Modified duration" of a bond, which is calculated as the
     # Macaulay duration divided by (1 + $yld/$freq).
     def modified_duration(yld: 100.0, settle_date: Date.today, convention: 0,
-                          verbose: false)
+      verbose: false)
       settle_date = Date.ensure(settle_date)
 
       unless [0, 1, 2, 3, 4].include?(convention)
         raise ArgumentError, 'Day count convention must be 0, 1, 2, 3, or 4.'
       end
 
-      macd = macaulay_duration(yld: yld, settle_date: settle_date,
-                               convention: convention, verbose: verbose)
+      macd = macaulay_duration(
+        yld: yld,
+        settle_date: settle_date,
+        convention: convention,
+        verbose: verbose,
+      )
       macd / (1 + yld / freq)
     end
 
@@ -378,8 +425,8 @@ module FatFin
         #############################################################
         # 3.01a - 30U/360
         # The adjustment to Date1 and Date2:
-        #     * If security is EOM and (d1 = last-day-of-February) and (d2 = last-day-of-February), then change d2 to 30.
-        #     * If security is EOM and (d1 = last-day-of-February), then change d1 to 30.
+        #     * If security is EOM and (d1 = last-day-February) and (d2 = last-day-February), then change d2 to 30.
+        #     * If security is EOM and (d1 = last-day-February), then change d1 to 30.
         #     * If d2 = 31 and d1 is 30 or 31, then change d2 to 30.
         #     * If d1 = 31, then change d1 to 30.
         # This is the convention in the U.S. for corporate, municipal, and some US Agency bonds.
