@@ -7,6 +7,7 @@ module FatFin
     refine Date do
       # Return the number of months between self and other date.
       def month_diff(other_date, whole: false)
+        other_date = Date.ensure(other_date)
         case other_date
         when Date
           # Put dates in d0, d1 order
@@ -29,7 +30,7 @@ module FatFin
           months += (date1.day - date0.day) / 30.0 unless whole
           factor * months
         else
-          raise ArgumentError
+          raise ArgumentError, "Date#month_diff(other) requires Date or string parseable as a Date"
         end
       end
 
