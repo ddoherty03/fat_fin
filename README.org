@@ -30,12 +30,12 @@ If bundler is not being used to manage dependencies, install the gem by executin
     - [[#computing-a-cashflows-internal-rate-of-return-with-irr-irr][Computing a ~CashFlow~'s internal rate of return with ~#irr~ (IRR)]]
     - [[#computing-a-cashflows-a-modified-internal-rate-of-return-with-mirr-mirr-aka-mwirr][Computing a ~CashFlow~'s a modified internal rate of Return with ~#mirr~ (MIRR aka MWIRR)]]
     - [[#using-non-standard-compounding][Using Non-Standard Compounding]]
+    - [[#subsetting-cashflow-with-withinperiod][Subsetting ~CashFlow~ with ~#within(period)~]]
 - [[#development][Development]]
 - [[#contributing][Contributing]]
 - [[#license][License]]
 
 * Usage
-
 ** ~TimeValue~ class
 This gem, ~fat_fin~, defines classes for dealing with certain financial
 calculations dealing with the time-value of money.  It's base class is
@@ -49,7 +49,7 @@ date.
 
 #+RESULTS:
 #+begin_example
-true
+false
 #+end_example
 
 *** Constructing a ~TimeValue~  object
@@ -502,6 +502,78 @@ Iter: 1, Guess: 0.50000000; NPV: -17500.000000000000; NPV': -55000.000000000000
 --------------------
 => 0.18181818181818182
 #+end_example
+
+*** Subsetting ~CashFlow~ with ~#within(period)~
+The ~#within#~ method allows you to get a ~CashFlow~ object that consists of
+only those ~TimeValues~ that fall within a given ~Period~.  The ~fat_fin~ gem
+includes ~fat_period~ which defines a ~Period~ class representing a range of
+dates. (See [[https://github.com/ddoherty03/fat_period][FatPeriod gem github page]]).
+
+The ~#within~ method takes a ~Period~ parameter and returns a new ~CashFlow~
+that contains only those ~TimeValues~ that fall within the given period.
+There is a twist, however: it adds a ~TimeValue~ dated the first date of the
+period that have a value equal to the ~#value_on~ that date of all
+~TimeValue~s that preceded the beginning of the given period.  That way, all
+investment activity leading up to the given period is encapsulated in a single
+~TimeValue~ at the beginning of the period.
+
+Recall that our ~flow~ example has the following ~TimeValue~s:
+
+#+begin_example
+| Date       |     Amount |
+|------------+------------|
+| 2022-01-15 | -40,000.00 |
+| 2022-02-15 |   2,000.00 |
+| 2022-03-15 |   2,000.00 |
+| 2022-04-15 |   2,000.00 |
+| 2022-05-15 |   2,000.00 |
+| 2022-06-15 |   2,000.00 |
+| 2022-07-15 |   2,000.00 |
+| 2022-08-15 |   2,000.00 |
+| 2022-09-15 |   2,000.00 |
+| 2022-10-15 |   2,000.00 |
+| 2022-11-15 |   2,000.00 |
+| 2022-12-15 |   2,000.00 |
+| 2023-01-15 |   2,000.00 |
+| 2023-02-15 |   2,000.00 |
+| 2023-03-15 |   2,000.00 |
+| 2023-04-15 |   2,000.00 |
+| 2023-05-15 |   2,000.00 |
+| 2023-06-15 |   2,000.00 |
+| 2023-07-15 |  -3,000.00 |
+| 2023-08-15 |   2,000.00 |
+| 2023-09-15 |   2,000.00 |
+| 2023-11-15 |  15,000.00 |
+#+end_example
+
+We can take subsets of if by passing the period of interest to ~#within~.  If
+we wanted to look at performance during the third quarter of 2022, for
+example, we could do this:
+
+#+begin_src ruby
+  q3 = Period.parse('2022-3Q')
+  flow3q = flow.within(q3)
+
+  # Format it all as a table
+  tab = [["Date", "Amount"], nil]
+  flow3q.time_values.each do |tv|
+    tab << [tv.date.iso, tv.amount.commas(2)]
+  end
+  tab
+#+end_src
+
+#+RESULTS:
+#+begin_example
+| Date | Amount |
+|------+--------|
+#+end_example
+
+that part Return a new CashFlow that narrows this CashFlow to the given period.  All
+TimeValues before the beginning of the period are rolled up into a single
+TimeValue having a date of the beginning of the period and an amount that
+represents their value_on that date.  All the TimeValues that fall within the
+period are retained and any TimeValues that are beyond the last date of the
+period are dropped.
 
 
 * Development
