@@ -6,6 +6,8 @@ module FatFin
   class CashFlow
     using DateExtension
 
+    DEFAULT_EPS = 0.0000001
+
     def initialize(cash_points = [])
       cash_points = cash_points.to_a
       raise ArgumentError, "All CashFlow components must be CashPoints" unless cash_points.all?(FatFin::CashPoint)
@@ -20,6 +22,10 @@ module FatFin
             tv
           end
       end
+    end
+
+    def precision_of(flt)
+      Math.log(flt, 10).abs.round(0)
     end
 
     # Add a new CashPoint to an existing CashFlow.
@@ -133,13 +139,13 @@ module FatFin
     # example, a CashFlow with all positive or all negative CashPoints will
     # never yeild an NPV os zero.  You can print the progress of the
     # algorithim by setting the verbose: parameter (default false) to true.
-    def irr(eps: 0.000001, guess: nil, freq: 1, verbose: false)
+    def irr(eps: DEFAULT_EPS, guess: nil, freq: 1, verbose: false)
       return 0.0 if cash_points.empty?
       return Float::NAN unless mixed_signs?
 
       guess ||= initial_guess
 
-      puts "Newton-Raphson search:"
+      puts "Newton-Raphson search (eps = #{eps}):"
       puts "-" * 30 if verbose
       try_irr = guess
       recovery_tried = false
@@ -153,9 +159,11 @@ module FatFin
         npv_prime = value_on_prime(first_date, rate: try_irr, freq: freq)
         if npv_prime.is_a?(Complex)
           if verbose
+            prec = precision_of(eps)
             puts "NPV' turned Complex': switching to binary search algorithm ... " if verbose
-            printf "Iter: %<iters>d, Guess: %<try_irr>4.8f; NPV: %<npv>4.12f; NPV': %<npv_prime>s\n",
-                   { iters: iters, try_irr: try_irr, npv: npv, npv_prime: "Complex" }
+            fmt_str = "Iter: %<iters>d, Guess: %<try_irr>4.#{prec}f; " \
+                        "NPV: %<npv>4.#{prec}f; NPV': %<npv_prime>s\n"
+            printf fmt_str, { iters: iters, try_irr: try_irr, npv: npv, npv_prime: "Complex" }
           end
           return birr(eps: eps, freq: freq, verbose: verbose)
         end
@@ -192,7 +200,7 @@ module FatFin
       try_irr
     end
 
-    def birr(eps: 0.000001, lo_guess: -0.9999, hi_guess: 1.0, freq: 1, verbose: false)
+    def birr(eps: DEFAULT_EPS, lo_guess: -0.9999, hi_guess: 1.0, freq: 1, verbose: false)
       lo, hi = lo_hi_guesses(freq: freq)
       return Float::NAN unless lo
 
@@ -203,10 +211,12 @@ module FatFin
       max_iters = 150
 
       if verbose
-        puts "Binary search:"
+        puts "Binary search (eps = #{eps}):"
         puts "-" * 30
-        printf "Iter: %<iters>d Rate[%<lo>4.8f, %<hi>4.8f]; NPV[%<lo_npv>4.12f {} %<hi_npv>4.12f]\n",
-               { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
+        prec = precision_of(eps)
+        fmt_str = "Iter: %<iters>d Rate[%<lo>4.#{prec}f, %<hi>4.#{prec}f];"\
+                  " NPV[%<lo_npv>4.#{prec}f {} %<hi_npv>4.#{prec}f]\n"
+        printf fmt_str, { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
       end
 
       unless lo_npv.signum * hi_npv.signum == -1
@@ -237,8 +247,8 @@ module FatFin
 
         iters += 1
         if verbose
-          printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f {%<mid_npv>4.5f} %<hi_npv>4.5f]\n",
-                 { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
+          # printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f {%<mid_npv>4.5f} %<hi_npv>4.5f]\n",
+          printf fmt_str, { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
         end
       end
       puts "-" * 30 if verbose
