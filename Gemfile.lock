@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fat_fin (0.1.0)
+    fat_fin (0.2.1)
       fat_core
       fat_period
 
