@@ -56,7 +56,7 @@ A new ~CashPoint~ needs an amount and, optionally, a date to be initialized.
 If no date is given, it uses the ~Date.today~ as its date.
 
 #+begin_src ruby :session readme
-  tv1 = FatFin::CashPoint.new(25_000.00, date: '2021-04-18')
+  cp1 = FatFin::CashPoint.new(25_000.00, date: '2021-04-18')
 #+end_src
 
 #+begin_example
@@ -74,7 +74,7 @@ interest rate.  For example, at a 5% rate, here is how you would find its
 value after more than two years.
 
 #+begin_src ruby
-  tv1.value_on('2024-09-12', rate: 0.05)
+  cp1.value_on('2024-09-12', rate: 0.05)
 #+end_src
 
 #+begin_example
@@ -85,7 +85,7 @@ The same ~value_on~ method works equally well for discounting the value back
 to an earlier date with a different interest rate, 6% this time.
 
 #+begin_src ruby
-  tv1.value_on('2020-05-16', rate: 0.06)
+  cp1.value_on('2020-05-16', rate: 0.06)
 #+end_src
 
 #+begin_example
@@ -96,10 +96,10 @@ If no rate is given a 10% rate is (arbitrarily) used and if no date is given,
 it uses its own date.  Here's how the value progresses through time:
 
 #+begin_src ruby
-  [['2024-09-12', tv1.date.iso, '2020-05-16'], nil,
-  [tv1.value_on('2020-05-16'),
-   tv1.value_on('2022-05-16'),
-   tv1.value_on('2024-05-16')]
+  [['2024-09-12', cp1.date.iso, '2020-05-16'], nil,
+  [cp1.value_on('2020-05-16'),
+   cp1.value_on('2022-05-16'),
+   cp1.value_on('2024-05-16')]
   ]
 #+end_src
 
@@ -117,14 +117,14 @@ year with the ~freq:~ parameter.  I use the ~#commas~ method from my
 #+begin_src ruby
   [[0, 1, 2, 3, 4, 6, 12, :cont], nil,
   [
-    tv1.value_on('2024-09-12', freq: 0).commas(2),
-    tv1.value_on('2024-09-12', freq: 1).commas(2),
-    tv1.value_on('2024-09-12', freq: 2).commas(2),
-    tv1.value_on('2024-09-12', freq: 3).commas(2),
-    tv1.value_on('2024-09-12', freq: 4).commas(2),
-    tv1.value_on('2024-09-12', freq: 6).commas(2),
-    tv1.value_on('2024-09-12', freq: 12).commas(2),
-    tv1.value_on('2024-09-12', freq: :cont).commas(2),
+    cp1.value_on('2024-09-12', freq: 0).commas(2),
+    cp1.value_on('2024-09-12', freq: 1).commas(2),
+    cp1.value_on('2024-09-12', freq: 2).commas(2),
+    cp1.value_on('2024-09-12', freq: 3).commas(2),
+    cp1.value_on('2024-09-12', freq: 4).commas(2),
+    cp1.value_on('2024-09-12', freq: 6).commas(2),
+    cp1.value_on('2024-09-12', freq: 12).commas(2),
+    cp1.value_on('2024-09-12', freq: :cont).commas(2),
   ]]
 #+end_src
 
@@ -137,7 +137,7 @@ year with the ~freq:~ parameter.  I use the ~#commas~ method from my
 The frequency must evenly divide 12:
 
 #+begin_src ruby
-  tv1.value_on('2024-09-12', freq: 5)
+  cp1.value_on('2024-09-12', freq: 5)
 #+end_src
 
 #+begin_example
@@ -170,15 +170,15 @@ good annual equivalent return, and a low or even negative CAGR indicates poor
 performance.
 
 The ~CashPoint~ class provides a ~#cagr~ method to measure the CAGR between
-two ~CashPoints~.  Recall that our ~tv1~ value is 25_000.00 on 2021-04-18.
+two ~CashPoints~.  Recall that our ~cp1~ value is 25_000.00 on 2021-04-18.
 What CAGR would it represent if it had started out two years earlier as
 15_000, 17_000, etc?
 
 #+begin_src ruby
   results = [["Start Value", "CAGR"]], nil
   (15_000..30_000).step(2_000) do |val0|
-    tv0 = FatFin::CashPoint.new(val0, date: tv1.date - 2.years)
-    results << [ val0.commas(2), tv1.cagr(tv0).round(5) ]
+    cp0 = FatFin::CashPoint.new(val0, date: cp1.date - 2.years)
+    results << [ val0.commas(2), cp1.cagr(cp0).round(5) ]
   end
   results
 #+end_src
@@ -220,11 +220,11 @@ end of that time.
 #+begin_src ruby
   # Upfront costs
   start_date = Date.parse('2022-01-15')
-  tvs = [
+  cps = [
     FatFin::CashPoint.new(-40_000, date: start_date),
     FatFin::CashPoint.new(-5_000, date: start_date + 18.months),
   ]
-  flow = FatFin::CashFlow.new(tvs)
+  flow = FatFin::CashFlow.new(cps)
 
   # Add additional CashPoints representing the earnings with the << shovel
   # operator
@@ -238,8 +238,8 @@ end of that time.
 
   # Format it all as a table
   tab = [["Date", "Amount"], nil]
-  flow.time_values.each do |tv|
-    tab << [tv.date.iso, tv.amount.commas(2)]
+  flow.time_values.each do |cp|
+    tab << [cp.date.iso, cp.amount.commas(2)]
   end
   tab
 #+end_src
@@ -559,8 +559,8 @@ example, we could do this:
 
   # Format it all as a table
   tab = [["Date", "Amount"], nil]
-  flow3q.time_values.each do |tv|
-    tab << [tv.date.iso, tv.amount.commas(2)]
+  flow3q.time_values.each do |cp|
+    tab << [cp.date.iso, cp.amount.commas(2)]
   end
   tab
 #+end_src

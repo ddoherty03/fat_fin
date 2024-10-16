@@ -162,7 +162,7 @@ module FatFin
             prec = precision_of(eps)
             puts "NPV' turned Complex': switching to binary search algorithm ... " if verbose
             fmt_str = "Iter: %<iters>d, Guess: %<try_irr>4.#{prec}f; " \
-                        "NPV: %<npv>4.#{prec}f; NPV': %<npv_prime>s\n"
+              "NPV: %<npv>4.#{prec}f; NPV': %<npv_prime>s\n"
             printf fmt_str, { iters: iters, try_irr: try_irr, npv: npv, npv_prime: "Complex" }
           end
           return birr(eps: eps, freq: freq, verbose: verbose)
@@ -214,8 +214,8 @@ module FatFin
         puts "Binary search (eps = #{eps}):"
         puts "-" * 30
         prec = precision_of(eps)
-        fmt_str = "Iter: %<iters>d Rate[%<lo>4.#{prec}f, %<hi>4.#{prec}f];"\
-                  " NPV[%<lo_npv>4.#{prec}f {} %<hi_npv>4.#{prec}f]\n"
+        fmt_str = "Iter: %<iters>d Rate[%<lo>4.#{prec}f, %<hi>4.#{prec}f]; " \
+          "NPV[%<lo_npv>4.#{prec}f {} %<hi_npv>4.#{prec}f]\n"
         printf fmt_str, { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
       end
 
