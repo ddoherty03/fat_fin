@@ -15,7 +15,7 @@ module FatFin
     end
     let!(:flow) do
       flw = CashFlow.new(tvs)
-      flw.add_time_value(CashPoint.new(1479.33, date: Date.parse('2024-09-14')))
+      flw.add_cash_point(CashPoint.new(1479.33, date: Date.parse('2024-09-14')))
       flw
     end
     let!(:mt_flow) { CashFlow.new }
@@ -23,25 +23,25 @@ module FatFin
 
     describe "initialization" do
       it "initializes a CashFlow" do
-        expect(flow.time_values.count).to eq(21)
-        expect(flow.time_values).to all be_a(CashPoint)
+        expect(flow.cash_points.count).to eq(21)
+        expect(flow.cash_points).to all be_a(CashPoint)
       end
 
       it "initializes an empty CashFlow" do
-        expect(mt_flow.time_values.count).to eq(0)
+        expect(mt_flow.cash_points.count).to eq(0)
         expect(mt_flow.value_on(Date.today, rate: 0.05)).to be_zero
       end
     end
 
     describe "time value" do
       it "computes value on a given date" do
-        expect(flow.value_on(flow.time_values.first.date, rate: 0.05)).to be_within(eps).of(1722.37916)
+        expect(flow.value_on(flow.cash_points.first.date, rate: 0.05)).to be_within(eps).of(1722.37916)
       end
     end
 
     describe "attribute methods" do
-      it "#time_values" do
-        expect(flow.time_values).to all be_a(CashPoint)
+      it "#cash_points" do
+        expect(flow.cash_points).to all be_a(CashPoint)
       end
 
       it "#size" do
@@ -129,8 +129,8 @@ module FatFin
             flw << FatFin::CashPoint.new(2_000, date: earn_date + k.months)
           end
 
-          # Add the salvage value at the end with the add_time_value method.
-          flw.add_time_value(FatFin::CashPoint.new(15_000, date: earn_date + 21.months))
+          # Add the salvage value at the end with the add_cash_point method.
+          flw.add_cash_point(FatFin::CashPoint.new(15_000, date: earn_date + 21.months))
           flw
         end
 

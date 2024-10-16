@@ -6,16 +6,16 @@ module FatFin
   class CashFlow
     using DateExtension
 
-    def initialize(time_values = [])
-      time_values = time_values.to_a
-      raise ArgumentError, "All CashFlow components must be CashPoints" unless time_values.all?(FatFin::CashPoint)
+    def initialize(cash_points = [])
+      cash_points = cash_points.to_a
+      raise ArgumentError, "All CashFlow components must be CashPoints" unless cash_points.all?(FatFin::CashPoint)
 
       # Build Hash keyed on CashPoint dates.
-      @time_values = {}
-      time_values.each do |tv|
-        @time_values[tv.date] =
-          if @time_values[tv.date]
-            @time_values[tv.date].merge(tv)
+      @cash_points = {}
+      cash_points.each do |tv|
+        @cash_points[tv.date] =
+          if @cash_points[tv.date]
+            @cash_points[tv.date].merge(tv)
           else
             tv
           end
@@ -23,13 +23,13 @@ module FatFin
     end
 
     # Add a new CashPoint to an existing CashFlow.
-    def add_time_value(tval)
+    def add_cash_point(tval)
       raise ArgumentError, "CashFlow component must be a CashPoint" unless tval.is_a?(FatFin::CashPoint)
 
-      if @time_values.key?(tval.date)
-        @time_values[tval.date].merge(tval)
+      if @cash_points.key?(tval.date)
+        @cash_points[tval.date].merge(tval)
       else
-        @time_values[tval.date] = tval
+        @cash_points[tval.date] = tval
       end
       self
     end
@@ -38,10 +38,10 @@ module FatFin
     def <<(other)
       case other
       when CashPoint
-        add_time_value(other)
+        add_cash_point(other)
       when CashFlow
-        other.time_values.each do |tv|
-          add_time_value(tv)
+        other.cash_points.each do |tv|
+          add_cash_point(tv)
         end
       else
         raise ArgumentError, "May only merge CashFlow or CashPoint" unless tval.is_a?(FatFin::CashPoint)
@@ -50,21 +50,21 @@ module FatFin
     end
 
     # Return the array of CashPoints
-    def time_values
-      @time_values.values.sort
+    def cash_points
+      @cash_points.values.sort
     end
 
     # Return the array of the dates in this CashFlow, sorted.
     def dates
-      @time_values.keys.sort
+      @cash_points.keys.sort
     end
 
     def first_date
-      time_values.first.date
+      cash_points.first.date
     end
 
     def last_date
-      time_values.last.date
+      cash_points.last.date
     end
 
     def years
@@ -73,7 +73,7 @@ module FatFin
 
     # Return the number of CashPoints in this CashFlow.
     def size
-      time_values.size
+      cash_points.size
     end
 
     # Return whether this CashFlow has no CashPoints, i.e., is empty.
@@ -82,7 +82,7 @@ module FatFin
     end
 
     def tv_sum
-      time_values.sum(&:amount)
+      cash_points.sum(&:amount)
     end
 
     # Return the Period from the first to the last CashPoint in this CashFlow.
@@ -101,7 +101,7 @@ module FatFin
     def within(period, rate: 0.1, freq: 1)
       pre_tvs = []
       within_tvs = []
-      time_values.each do |tv|
+      cash_points.each do |tv|
         if tv.date < period.first
           pre_tvs << tv
         elsif period.contains?(tv.date)
@@ -116,8 +116,8 @@ module FatFin
 
     # Return the net present value of the CashFlow as of the given date, using
     # the given rate and compunding frequency.
-    def value_on(on_date = time_values.first&.date || Date.today, rate: 0.1, freq: 1)
-      time_values.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
+    def value_on(on_date = cash_points.first&.date || Date.today, rate: 0.1, freq: 1)
+      cash_points.sum(0.0) { |pmt| pmt.value_on(on_date, rate: rate, freq: freq) }
     end
 
     # Compute the annual internal rate of return (IRR) for the CashFlow using
@@ -134,7 +134,7 @@ module FatFin
     # never yeild an NPV os zero.  You can print the progress of the
     # algorithim by setting the verbose: parameter (default false) to true.
     def irr(eps: 0.000001, guess: nil, freq: 1, verbose: false)
-      return 0.0 if time_values.empty?
+      return 0.0 if cash_points.empty?
       return Float::NAN unless mixed_signs?
 
       guess ||= initial_guess
@@ -282,7 +282,7 @@ module FatFin
     private
 
     def pos_neg_partition
-      pos, neg = time_values.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
+      pos, neg = cash_points.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
       [CashFlow.new(pos), CashFlow.new(neg)]
     end
 
@@ -336,8 +336,8 @@ module FatFin
 
     # Return the /derivative/ of the net present value of the CashFlow as of
     # the given date, using the given rate and compunding frequency.
-    def value_on_prime(on_date = time_values.first&.date || Date.today, rate: 0.1, freq: 1)
-      time_values.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
+    def value_on_prime(on_date = cash_points.first&.date || Date.today, rate: 0.1, freq: 1)
+      cash_points.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
     end
 
     # IRR cannot be computed unless the CashFlow has at least one positive and
