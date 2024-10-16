@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 module FatFin
-  describe CashFlow do
+  RSpec.describe CashFlow do
     let!(:tvs) do
       all = []
       dt = Date.parse('2022-08-14')
       amt = -10_000
       1.upto(20) do |_k|
-        all << TimeValue.new(amt, date: dt)
+        all << CashPoint.new(amt, date: dt)
         amt = [amt + 4_700, 1_000].min
         dt += 1.month
       end
@@ -15,7 +15,7 @@ module FatFin
     end
     let!(:flow) do
       flw = CashFlow.new(tvs)
-      flw.add_time_value(TimeValue.new(1479.33, date: Date.parse('2024-09-14')))
+      flw.add_time_value(CashPoint.new(1479.33, date: Date.parse('2024-09-14')))
       flw
     end
     let!(:mt_flow) { CashFlow.new }
@@ -24,7 +24,7 @@ module FatFin
     describe "initialization" do
       it "initializes a CashFlow" do
         expect(flow.time_values.count).to eq(21)
-        expect(flow.time_values).to all be_a(TimeValue)
+        expect(flow.time_values).to all be_a(CashPoint)
       end
 
       it "initializes an empty CashFlow" do
@@ -41,7 +41,7 @@ module FatFin
 
     describe "attribute methods" do
       it "#time_values" do
-        expect(flow.time_values).to all be_a(TimeValue)
+        expect(flow.time_values).to all be_a(CashPoint)
       end
 
       it "#size" do
@@ -75,7 +75,7 @@ module FatFin
         dt = Date.today - 25.months
         amt = 1_200
         1.upto(20) do |_k|
-          all << TimeValue.new(amt, date: dt)
+          all << CashPoint.new(amt, date: dt)
           amt = [amt + 470, 1_000].min
           dt += 1.month
         end
@@ -85,7 +85,7 @@ module FatFin
         CashFlow.new(pos_pmts)
       end
       let!(:neg_flow) do
-        CashFlow.new(pos_pmts.map { |pmt| TimeValue.new(-pmt.amount, date: pmt.date) })
+        CashFlow.new(pos_pmts.map { |pmt| CashPoint.new(-pmt.amount, date: pmt.date) })
       end
 
       it "computes IRR" do
@@ -93,7 +93,7 @@ module FatFin
       end
 
       it "computes negative IRR" do
-        bad_flow = flow << TimeValue.new(-3_000, date: '2024-09-14')
+        bad_flow = flow << CashPoint.new(-3_000, date: '2024-09-14')
         irr = bad_flow.irr(verbose: true)
         # This expectation value comes from Libreoffice XIRR function on the
         # same data.
@@ -118,19 +118,19 @@ module FatFin
         let(:rm_flow) do
           start_date = Date.parse("2022-01-15")
           tvs = [
-            FatFin::TimeValue.new(-40_000, date: start_date),
-            FatFin::TimeValue.new(-5_000, date: start_date + 18.months)
+            FatFin::CashPoint.new(-40_000, date: start_date),
+            FatFin::CashPoint.new(-5_000, date: start_date + 18.months)
           ]
           flw = FatFin::CashFlow.new(tvs)
-          # Add additional TimeValues representing the earnings with the << shovel
+          # Add additional CashPoints representing the earnings with the << shovel
           # operator
           earn_date = start_date + 1.month
           20.times do |k|
-            flw << FatFin::TimeValue.new(2_000, date: earn_date + k.months)
+            flw << FatFin::CashPoint.new(2_000, date: earn_date + k.months)
           end
 
           # Add the salvage value at the end with the add_time_value method.
-          flw.add_time_value(FatFin::TimeValue.new(15_000, date: earn_date + 21.months))
+          flw.add_time_value(FatFin::CashPoint.new(15_000, date: earn_date + 21.months))
           flw
         end
 
@@ -158,7 +158,7 @@ module FatFin
       end
 
       it "computes negative BIRR" do
-        bad_flow = flow << TimeValue.new(-3_000, date: '2024-09-14')
+        bad_flow = flow << CashPoint.new(-3_000, date: '2024-09-14')
         irr = bad_flow.birr(lo_guess: -0.5, hi_guess: -0.02, verbose: true)
         # This expectation value comes from Libreoffice XIRR function on the
         # same data.
@@ -176,7 +176,7 @@ module FatFin
       end
 
       it "computes MIRR that has a negative IRR" do
-        bad_flow = flow << TimeValue.new(-3_000, date: '2024-09-14')
+        bad_flow = flow << CashPoint.new(-3_000, date: '2024-09-14')
         mirr = bad_flow.mirr(verbose: true)
         expect(mirr).to be_within(eps).of(0.022493)
       end

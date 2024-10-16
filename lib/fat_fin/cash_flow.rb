@@ -8,9 +8,9 @@ module FatFin
 
     def initialize(time_values = [])
       time_values = time_values.to_a
-      raise ArgumentError, "All CashFlow components must be TimeValues" unless time_values.all?(FatFin::TimeValue)
+      raise ArgumentError, "All CashFlow components must be CashPoints" unless time_values.all?(FatFin::CashPoint)
 
-      # Build Hash keyed on TimeValue dates.
+      # Build Hash keyed on CashPoint dates.
       @time_values = {}
       time_values.each do |tv|
         @time_values[tv.date] =
@@ -22,9 +22,9 @@ module FatFin
       end
     end
 
-    # Add a new TimeValue to an existing CashFlow.
+    # Add a new CashPoint to an existing CashFlow.
     def add_time_value(tval)
-      raise ArgumentError, "CashFlow component must be a TimeValue" unless tval.is_a?(FatFin::TimeValue)
+      raise ArgumentError, "CashFlow component must be a CashPoint" unless tval.is_a?(FatFin::CashPoint)
 
       if @time_values.key?(tval.date)
         @time_values[tval.date].merge(tval)
@@ -34,22 +34,22 @@ module FatFin
       self
     end
 
-    # Merge TimeValue or CashFlow into this CashFlow.
+    # Merge CashPoint or CashFlow into this CashFlow.
     def <<(other)
       case other
-      when TimeValue
+      when CashPoint
         add_time_value(other)
       when CashFlow
         other.time_values.each do |tv|
           add_time_value(tv)
         end
       else
-        raise ArgumentError, "May only merge CashFlow or TimeValue" unless tval.is_a?(FatFin::TimeValue)
+        raise ArgumentError, "May only merge CashFlow or CashPoint" unless tval.is_a?(FatFin::CashPoint)
       end
       self
     end
 
-    # Return the array of TimeValues
+    # Return the array of CashPoints
     def time_values
       @time_values.values.sort
     end
@@ -71,12 +71,12 @@ module FatFin
       last_date.month_diff(first_date) / 12.0
     end
 
-    # Return the number of TimeValues in this CashFlow.
+    # Return the number of CashPoints in this CashFlow.
     def size
       time_values.size
     end
 
-    # Return whether this CashFlow has no TimeValues, i.e., is empty.
+    # Return whether this CashFlow has no CashPoints, i.e., is empty.
     def empty?
       size.zero?
     end
@@ -85,7 +85,7 @@ module FatFin
       time_values.sum(&:amount)
     end
 
-    # Return the Period from the first to the last TimeValue in this CashFlow.
+    # Return the Period from the first to the last CashPoint in this CashFlow.
     def period
       return if empty?
 
@@ -93,10 +93,10 @@ module FatFin
     end
 
     # Return a new CashFlow that narrows this CashFlow to the given period.
-    # All TimeValues before the beginning of the period are rolled up into a
-    # single TimeValue having a date of the beginning of the period and an
-    # amount that represents their value_on that date.  All the TimeValues
-    # that fall within the period are retained and any TimeValues that are
+    # All CashPoints before the beginning of the period are rolled up into a
+    # single CashPoint having a date of the beginning of the period and an
+    # amount that represents their value_on that date.  All the CashPoints
+    # that fall within the period are retained and any CashPoints that are
     # beyond the last date of the period are dropped.
     def within(period, rate: 0.1, freq: 1)
       pre_tvs = []
@@ -110,7 +110,7 @@ module FatFin
       end
       pre_cf = CashFlow.new(pre_tvs)
       first_val = pre_cf.value_on(period.first, rate: rate, freq: freq)
-      first_tv = TimeValue.new(first_val, date: period.first)
+      first_tv = CashPoint.new(first_val, date: period.first)
       CashFlow.new(within_tvs) << first_tv
     end
 
@@ -130,7 +130,7 @@ module FatFin
     # supplied by the guess: parameter (default 0.5).  If you get a Float::NAN
     # result, you may have better luck using a different initial guess, but
     # sometimes there is no rate that can produce an NPV of zero.  For
-    # example, a CashFlow with all positive or all negative TimeValues will
+    # example, a CashFlow with all positive or all negative CashPoints will
     # never yeild an NPV os zero.  You can print the progress of the
     # algorithim by setting the verbose: parameter (default false) to true.
     def irr(eps: 0.000001, guess: nil, freq: 1, verbose: false)

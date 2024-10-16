@@ -6,7 +6,7 @@ module FatFin
   # class provides a method for computing the time-value of the amount as of
   # some given date at a given rate and a given compunding frequency.  It can
   # be used for both discounting back in time and compunding forward in time.
-  class TimeValue
+  class CashPoint
     using DateExtension
 
     attr_reader :date
@@ -23,7 +23,7 @@ module FatFin
       date <=> other.date
     end
 
-    # Add the amount of other to this TimeValue if other has the same date;
+    # Add the amount of other to this CashPoint if other has the same date;
     # otherwise, do nothing.
     def merge(other)
       self.amount += other.amount if date == other.date
@@ -39,21 +39,21 @@ module FatFin
       [0, 1, 2, 3, 4, 6, 12, :cont].include?(frq)
     end
 
-    # Return the net present value (NPV) of this TimeValue on a given date,
+    # Return the net present value (NPV) of this CashPoint on a given date,
     # *on_date*, assuming an /annual/ interest rate of *rate*, expressed as a
     # decimal.  Thus, an 8% per-year interest rate would be given as 0.08.  If
     # compounding at a frequency of more than once per year is wanted, include
     # a *freq* parameter that is an even divisor of 12 to indicate how many
     # times per year the interest is to be compounded.  For simple interest,
     # give a frequency, *freq* of 0.  By default, the frequency is 1.  This
-    # works equally well for computing a future value of this TimeValue if the
-    # on_date is later than the TimeValue's date.'
+    # works equally well for computing a future value of this CashPoint if the
+    # on_date is later than the CashPoint's date.'
     def value_on(on_date = date || Date.today, rate: 0.1, freq: 1)
       on_date = Date.ensure_date(on_date)
 
       raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
 
-      # Number of years between TimeValue's date and the date on which discouted
+      # Number of years between CashPoint's date and the date on which discouted
       # value is being measured.
       years = on_date.month_diff(date) / 12.0
 
@@ -82,7 +82,7 @@ module FatFin
     end
 
     # Compute the "compound annual growth rate" that would have been required
-    # to arrive at this TimeValue from the given from_tv, where the rate is
+    # to arrive at this CashPoint from the given from_tv, where the rate is
     # compounded freq times per year.
     def cagr(from_tv, freq: 1)
       raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
@@ -98,14 +98,14 @@ module FatFin
       end
     end
 
-    # Return the /derivative/ of the net present value of the TimeValue as of
+    # Return the /derivative/ of the net present value of the CashPoint as of
     # the given date, using the given rate and compunding frequency.
     def value_on_prime(on_date = Date.today, rate: 0.1, freq: 1)
       # rate = rate
       on_date = Date.ensure_date(on_date)
       raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
 
-      # Number of years between TimeValue's date and the date on which
+      # Number of years between CashPoint's date and the date on which
       # discouted value is being measured.
       years = on_date.month_diff(date) / 12.0
 

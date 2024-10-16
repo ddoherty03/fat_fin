@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module FatFin
-  describe TimeValue do
-    let(:tv) { TimeValue.new(45_000.33, date: "2022-11-16") }
-    let(:fut_tv) { TimeValue.new(55_102.9895856, date: "2025-01-01") }
+  RSpec.describe CashPoint do
+    let(:tv) { CashPoint.new(45_000.33, date: "2022-11-16") }
+    let(:fut_tv) { CashPoint.new(55_102.9895856, date: "2025-01-01") }
     let(:eps) { 0.00001 }
 
-    it "initializes a TimeValue" do
+    it "initializes a CashPoint" do
       expect(tv.amount).to eq(45_000.33)
       expect(tv.date).to eq(Date.parse("2022-11-16"))
     end
@@ -74,7 +74,7 @@ module FatFin
         # About 25.5 months before payment, or 2.125 years.  With simple
         # interest, the discounted value should be (1 + 0.1 * 2.125) = 1.2125
         # 55654.8832435 / 1.2125 = 45900.9346338
-        tv1 = TimeValue.new(55_654.8832435, date: "2025-01-01")
+        tv1 = CashPoint.new(55_654.8832435, date: "2025-01-01")
         expect(tv1.value_on("2022-11-16", rate: 0.10, freq: 0)).to be_within(eps).of(45_900.9346338)
       end
 
@@ -82,7 +82,7 @@ module FatFin
         # About 25.5 months after payment, or 2.125 years.  With contiuous
         # compunding at a rate of 0.10, the future value should be e^(0.1*2.125) = 1.23676611357
         # 1.23676611357 * 45_000.33 = 55654.8832435
-        tv1 = TimeValue.new(55_654.8832435, date: "2025-01-01")
+        tv1 = CashPoint.new(55_654.8832435, date: "2025-01-01")
         expect(tv1.value_on("2022-11-16", rate: 0.10, freq: :cont)).to be_within(eps).of(45_000.33)
       end
 

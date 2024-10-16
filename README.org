@@ -20,10 +20,10 @@ If bundler is not being used to manage dependencies, install the gem by executin
 * Table of Contents                                            :toc:noexport:
 - [[#installation][Installation]]
 - [[#usage][Usage]]
-  - [[#timevalue-class][~TimeValue~ class]]
-    - [[#constructing-a-timevalue--object][Constructing a ~TimeValue~  object]]
-    - [[#computing-a-timevalues-value-on-a-different-date-with-value_on-pv-and-fv][Computing a ~TimeValue~'s value on a different date with #value_on (PV and FV)]]
-    - [[#computing-the-annualized-growth-rate-between-two-timevalues-with-cagr-cagr][Computing the annualized growth rate between two ~TimeValues~ with #cagr (CAGR)]]
+  - [[#cashpoint-class][~CashPoint~ class]]
+    - [[#constructing-a-cashpoint--object][Constructing a ~CashPoint~  object]]
+    - [[#computing-a-cashpoints-value-on-a-different-date-with-value_on-pv-and-fv][Computing a ~CashPoint~'s value on a different date with #value_on (PV and FV)]]
+    - [[#computing-the-annualized-growth-rate-between-two-cashpoints-with-cagr-cagr][Computing the annualized growth rate between two ~CashPoints~ with #cagr (CAGR)]]
   - [[#cashflow-class][~CashFlow~ class]]
     - [[#constructing-cashflow-object][Constructing ~CashFlow~ object]]
     - [[#computing-a-cashflows-value-on-a-different-date-with-value_on-npv][Computing a ~CashFlow~'s value on a different date with ~#value_on~ (NPV)]]
@@ -36,11 +36,10 @@ If bundler is not being used to manage dependencies, install the gem by executin
 - [[#license][License]]
 
 * Usage
-** ~TimeValue~ class
+** ~CashPoint~ class
 This gem, ~fat_fin~, defines classes for dealing with certain financial
-calculations dealing with the time-value of money.  It's base class is
-~TimeValue~ which provides for creation of money values tied to a particular
-date.
+calculations involving the time-value of money.  It's base class is
+~CashPoint~ which represents a quantity of money tied to a particular date.
 
 #+begin_src ruby
   require 'bundler/setup'
@@ -52,19 +51,23 @@ date.
 false
 #+end_example
 
-*** Constructing a ~TimeValue~  object
-A new ~TimeValue~ needs an amount and, optionally, a date to be initialized.
+*** Constructing a ~CashPoint~  object
+A new ~CashPoint~ needs an amount and, optionally, a date to be initialized.
 If no date is given, it uses the ~Date.today~ as its date.
 
 #+begin_src ruby :session readme
-  tv1 = FatFin::TimeValue.new(25_000.00, date: '2021-04-18')
+  tv1 = FatFin::CashPoint.new(25_000.00, date: '2021-04-18')
 #+end_src
 
 #+begin_example
-#<FatFin::TimeValue:0x00007f9a8f882f58 @amount=25000.0, @date=Sun, 18 Apr 2021>
+#<FatFin::CashPoint:0x00007f9a8f882f58 @amount=25000.0, @date=Sun, 18 Apr 2021>
 #+end_example
 
-*** Computing a ~TimeValue~'s value on a different date with #value_on (PV and FV)
+The value for the ~date~ parameter can be a string parseable as a date with
+~Date.parse~, a Date object, or any object that responds to the ~#to_date~
+method, including ~Time~ and ~DateTime~.
+
+*** Computing a ~CashPoint~'s value on a different date with #value_on (PV and FV)
 
 Once created, you can get its time-value as of any other date at any assumed
 interest rate.  For example, at a 5% rate, here is how you would find its
@@ -156,7 +159,7 @@ is, compounding a 10% annual rate continuously for 3 years works out to around
 34.986%, given by the formula $e^{rt$} where $r$ is the annual interest rate and
 $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
-*** Computing the annualized growth rate between two ~TimeValues~ with #cagr (CAGR)
+*** Computing the annualized growth rate between two ~CashPoints~ with #cagr (CAGR)
 
 One measure of how well an investment that has grown from one value on one
 date to a larger (hopefully) value on a later date is the CAGR, or
@@ -166,15 +169,15 @@ compounding/ interest rate would I have had to earn?  A high CAGR indicates a
 good annual equivalent return, and a low or even negative CAGR indicates poor
 performance.
 
-The ~TimeValue~ class provides a ~#cagr~ method to measure the CAGR between
-two ~TimeValues~.  Recall that our ~tv1~ value is 25_000.00 on 2021-04-18.
+The ~CashPoint~ class provides a ~#cagr~ method to measure the CAGR between
+two ~CashPoints~.  Recall that our ~tv1~ value is 25_000.00 on 2021-04-18.
 What CAGR would it represent if it had started out two years earlier as
 15_000, 17_000, etc?
 
 #+begin_src ruby
   results = [["Start Value", "CAGR"]], nil
   (15_000..30_000).step(2_000) do |val0|
-    tv0 = FatFin::TimeValue.new(val0, date: tv1.date - 2.years)
+    tv0 = FatFin::CashPoint.new(val0, date: tv1.date - 2.years)
     results << [ val0.commas(2), tv1.cagr(tv0).round(5) ]
   end
   results
@@ -199,13 +202,13 @@ very favorable 29%, but it can go the other way too: had we started with
 
 ** ~CashFlow~ class
 
-While the ~TimeValue~ class represents a single value at a single point of time,
-sometime we want to analyze a whole sequence of ~TimeValues~, and this is what
+While the ~CashPoint~ class represents a single value at a single point of time,
+sometime we want to analyze a whole sequence of ~CashPoints~, and this is what
 the ~CashFlow~ class provides.
 
 *** Constructing ~CashFlow~ object
 
-A ~CashFlow~ object consists of a collection of ~TimeValue~ objects that can
+A ~CashFlow~ object consists of a collection of ~CashPoint~ objects that can
 be passed to the initializer as an array or can be added to it after creation
 with an ~add_time_value~ method or its equivalent, the ~<<~ shovel operator.
 
@@ -218,20 +221,20 @@ end of that time.
   # Upfront costs
   start_date = Date.parse('2022-01-15')
   tvs = [
-    FatFin::TimeValue.new(-40_000, date: start_date),
-    FatFin::TimeValue.new(-5_000, date: start_date + 18.months),
+    FatFin::CashPoint.new(-40_000, date: start_date),
+    FatFin::CashPoint.new(-5_000, date: start_date + 18.months),
   ]
   flow = FatFin::CashFlow.new(tvs)
 
-  # Add additional TimeValues representing the earnings with the << shovel
+  # Add additional CashPoints representing the earnings with the << shovel
   # operator
   earn_date = start_date + 1.month
   20.times do |k|
-    flow << FatFin::TimeValue.new(2_000, date: earn_date + k.months)
+    flow << FatFin::CashPoint.new(2_000, date: earn_date + k.months)
   end
 
   # Add the salvage value at the end with the add_time_value method.
-  flow.add_time_value(FatFin::TimeValue.new(15_000, date: earn_date + 21.months))
+  flow.add_time_value(FatFin::CashPoint.new(15_000, date: earn_date + 21.months))
 
   # Format it all as a table
   tab = [["Date", "Amount"], nil]
@@ -270,10 +273,10 @@ end of that time.
 
 *** Computing a ~CashFlow~'s value on a different date with ~#value_on~ (NPV)
 
-Just as you can compute the time-value of a single ~TimeValue~ to any date at
-any given rate, so you can do the same to a whole collection of ~TimeValues~
+Just as you can compute the time-value of a single ~CashPoint~ to any date at
+any given rate, so you can do the same to a whole collection of ~CashPoints~
 with the ~value_on~ method of ~CashFlow~.  When the value of a collection of
-~TimeValues~ is taken as of the date of the first such payment, it is called
+~CashPoints~ is taken as of the date of the first such payment, it is called
 the "Net Present Value," or NPV, of the stream of payments.
 
 In the above example, payments out are represented by negative numbers and
@@ -289,7 +292,7 @@ above stream by applying the ~value_on~ method to the ~CashFlow~ object:
 #+end_example
 
 By default, the date used in the as the first parameter to ~#value_on~ is the
-date of the earliest ~TimeValue~ in the collection, i.e., it is the NPV.
+date of the earliest ~CashPoint~ in the collection, i.e., it is the NPV.
 Also, if no rate is given, it uses 10%, with a compunding frequency of once
 per year.
 
@@ -304,7 +307,7 @@ But we can compute the ~CashFlow~'s value as of any date using any rate:
 #+end_example
 
 And we can use any valid compounding frequency as explained above for
-~TimeValues~:
+~CashPoints~:
 
 #+begin_src ruby
  flow.value_on('2019-01-01', rate: 0.05, freq: :cont)
@@ -505,19 +508,19 @@ Iter: 1, Guess: 0.50000000; NPV: -17500.000000000000; NPV': -55000.000000000000
 
 *** Subsetting ~CashFlow~ with ~#within(period)~
 The ~#within#~ method allows you to get a ~CashFlow~ object that consists of
-only those ~TimeValues~ that fall within a given ~Period~.  The ~fat_fin~ gem
+only those ~CashPoints~ that fall within a given ~Period~.  The ~fat_fin~ gem
 includes ~fat_period~ which defines a ~Period~ class representing a range of
 dates. (See [[https://github.com/ddoherty03/fat_period][FatPeriod gem github page]]).
 
 The ~#within~ method takes a ~Period~ parameter and returns a new ~CashFlow~
-that contains only those ~TimeValues~ that fall within the given period.
-There is a twist, however: it adds a ~TimeValue~ dated the first date of the
+that contains only those ~CashPoints~ that fall within the given period.
+There is a twist, however: it adds a ~CashPoint~ dated the first date of the
 period that have a value equal to the ~#value_on~ that date of all
-~TimeValue~s that preceded the beginning of the given period.  That way, all
+~CashPoint~s that preceded the beginning of the given period.  That way, all
 investment activity leading up to the given period is encapsulated in a single
-~TimeValue~ at the beginning of the period.
+~CashPoint~ at the beginning of the period.
 
-Recall that our ~flow~ example has the following ~TimeValue~s:
+Recall that our ~flow~ example has the following ~CashPoint~s:
 
 #+begin_example
 | Date       |     Amount |
@@ -569,10 +572,10 @@ example, we could do this:
 #+end_example
 
 that part Return a new CashFlow that narrows this CashFlow to the given period.  All
-TimeValues before the beginning of the period are rolled up into a single
-TimeValue having a date of the beginning of the period and an amount that
-represents their value_on that date.  All the TimeValues that fall within the
-period are retained and any TimeValues that are beyond the last date of the
+CashPoints before the beginning of the period are rolled up into a single
+CashPoint having a date of the beginning of the period and an amount that
+represents their value_on that date.  All the CashPoints that fall within the
+period are retained and any CashPoints that are beyond the last date of the
 period are dropped.
 
 
