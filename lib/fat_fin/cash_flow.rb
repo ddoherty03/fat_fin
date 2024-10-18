@@ -225,12 +225,39 @@ module FatFin
       try_irr
     end
 
-    def birr(eps: DEFAULT_EPS, lo_guess: -0.9999, hi_guess: 1.0, freq: 1, verbose: false)
-      lo, hi = lo_hi_guesses(freq: freq)
-      return Float::NAN unless lo
+    # Compute the annual internal rate of return (IRR) for the CashFlow using
+    # the a binary search method.  The IRR is that rate that causes the NPV od
+    # the CashFlow to equal zero.  In other words, the rate that causes the
+    # #value_on the first date in the flow to equal zero.  It assumes a
+    # compounding frequency given by freq: parameter (default 1).  The
+    # parameter eps: determines how close to zero we have to get (default
+    # 0.000001).  The method depends on having two initial guesses, one that
+    # yeilds a negative NPV and one that yields a positive NPV.  These guesses
+    # can be supplied by supplying a two-element array of Floats with the
+    # guess: parameter.  If no initial guesses are supplied, birr attempts to
+    # find two suitable guesses by a heuristic.
+    #
+    # If you get a Float::NAN result, you may have better luck using different
+    # initial guesses, but sometimes there is no rate that can produce an NPV
+    # of zero.  For example, a CashFlow with all positive or all negative
+    # CashPoints will never yeild an NPV of zero.  You can print the progress
+    # of the algorithim by setting the verbose: parameter (default false) to
+    # true.
+    def birr(eps: DEFAULT_EPS, guesses: nil, freq: 1, verbose: false)
+      return Float::NAN unless mixed_signs?
+      unless guesses.nil? || (guesses.size == 2 && guesses.all?(Numeric))
+        raise ArgumentError, "guesses parameter must be an array of two numbers"
+      end
 
-      lo_npv = value_on(first_date, rate: lo_guess, freq: freq)
-      hi_npv = value_on(first_date, rate: hi_guess, freq: freq)
+      if guesses
+        lo_rate, hi_rate = guesses.sort.map(&:to_f)
+      else
+        lo_rate, hi_rate = lo_hi_guesses(freq: freq)
+      end
+      return Float::NAN unless lo_rate
+
+      lo_npv = value_on(first_date, rate: lo_rate, freq: freq)
+      hi_npv = value_on(first_date, rate: hi_rate, freq: freq)
 
       iters = 0
       max_iters = 150
@@ -241,39 +268,45 @@ module FatFin
         prec = precision_of(eps)
         fmt_str = "Iter: %<iters>d Rate[%<lo>4.#{prec}f, %<hi>4.#{prec}f]; " \
           "NPV[%<lo_npv>4.#{prec}f {} %<hi_npv>4.#{prec}f]\n"
-        printf fmt_str, { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv }
+        printf fmt_str, { iters: iters, lo: lo_rate, hi: hi_rate, lo_npv: lo_npv, hi_npv: hi_npv }
       end
 
       unless lo_npv.signum * hi_npv.signum == -1
-        raise ArgumentError, "NPV at lo_guess and hi_guess must have opposite signs"
+        msg = "NPV at lo_guess (#{lo_rate.commas(4)}) and hi_guess #{hi_rate.commas(4)} do not have opposite signs"
+        raise ArgumentError, msg
       end
 
       result = Float::NAN
       while iters < max_iters
         # Calculate the midpoint
-        mid = (lo + hi) / 2.0
-        mid_npv = value_on(first_date, rate: mid, freq: freq)
+        mid_rate = (lo_rate + hi_rate) / 2.0
+        mid_npv = value_on(first_date, rate: mid_rate, freq: freq)
 
         # Check if the NPV at midpoint is close enough to zero
-        result = mid if mid_npv.abs < eps
+        if mid_npv.abs < eps
+          printf "NPV close enough to zero\n" if verbose
+          result = mid_rate
+          break
+        end
 
         # Decide which subinterval to choose for the next iteration
         if (lo_npv * mid_npv).negative?
-          hi = mid
+          hi_rate = mid_rate
           hi_npv = mid_npv
         else
-          lo = mid
+          lo_rate = mid_rate
           lo_npv = mid_npv
         end
-        if (hi - lo).abs < eps
-          result = mid
-          break
-        end
+        # if (hi_rate - lo_rate).abs < eps  # && ((((hi_npv - lo_npv) / mid_npv).abs < eps) ¦| mid_npv <= eps))
+        #   printf "Rates close enough together\n" if verbose
+        #   result = mid_rate
+        #   break
+        # end
 
         iters += 1
         if verbose
           # printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f {%<mid_npv>4.5f} %<hi_npv>4.5f]\n",
-          printf fmt_str, { iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
+          printf fmt_str, { iters: iters, lo: lo_rate, hi: hi_rate, lo_npv: lo_npv, hi_npv: hi_npv, mid_npv: mid_npv }
         end
       end
       puts "-" * 30 if verbose
@@ -325,8 +358,8 @@ module FatFin
     # over the period of this CashFlow.
     def initial_guess
       total_inflows, total_outflows = pos_neg_partition
-      in_sum = total_inflows.tv_sum.to_f
-      out_sum = total_outflows.tv_sum.abs.to_f
+      in_sum = total_inflows.sum.to_f
+      out_sum = total_outflows.sum.abs.to_f
       return 0.5 if out_sum.zero?
 
       ((in_sum / out_sum)**(1.0 / years)) - 1.0
@@ -334,36 +367,66 @@ module FatFin
 
     # Look for a low and high guess across which the NPV changes sign
     def lo_hi_guesses(freq: 1)
-      max_iters = 10
-      lo = initial_guess - 0.5
-      hi = initial_guess + 0.5
+      # return [-1.0, 1.0]
+      # ratio = positive_sum / negative_sum.abs
+      # if ratio > 1
+      #   [0.0, 1.0]
+      # else
+      #   [-1.0, 0.0]
+      # end
+
+      # try_npv = value_on(first_date, rate: try_rate, freq: freq)
+      # hi_npv = value_on(first_date, rate: 0.0, freq: freq)
+
+      lo = -0.05
+      hi = 1.0
       lo_npv = value_on(first_date, rate: lo, freq: freq)
       hi_npv = value_on(first_date, rate: hi, freq: freq)
 
+      printf "Looking for binary guesses\n"
+      # printf "Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f %<hi_npv>4.5f]\n",
+      #        iters: iters, lo: lo, hi: hi, lo_npv: lo_npv, hi_npv: hi_npv
+      # binding.break
       if (lo_npv.signum * hi_npv.signum).negative?
         # Different signs
         return [lo, hi]
-      elsif lo_npv < 0.0 && hi_npv < 0.0
+      end
+
+      if hi_npv > 0.0 # lo_npv < 0.0 && hi_npv < 0.0
         # Both negative.  Increase hi until hi_npv positive
-        iters = 1
-        while hi_npv < 0.0 && iters <= max_iters
-          hi += 0.1
+        max_iters = 50
+        its = 1
+        while hi_npv > 0.0 && its <= max_iters
+          hi += 0.2
           hi_npv = value_on(first_date, rate: hi, freq: freq)
-          iters += 1
+          printf "Hi Guess Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f %<hi_npv>4.5f]\n",
+                 iters: its,
+lo: lo,
+hi: hi,
+lo_npv: lo_npv,
+hi_npv: hi_npv # if verbose
+          its += 1
         end
-      elsif lo_npv > 0.0 && hi_npv > 0.0
+      end
+      if lo_npv < 0.0 # && hi_npv > 0.0
         # Both positive. Decrease lo until lo_npv negative
-        iters = 1
-        while lo_npv > 0.0 && iters <= max_iters
+        max_iters = 50
+        its = 1
+        while lo_npv < 0.0 && its <= max_iters
           lo -= 0.1
           lo_npv = value_on(first_date, rate: lo, freq: freq)
-          iters += 1
+          printf "Lo Guess Iter: %<iters>d Rate[%<lo>0.5f] NPV[%<lo_npv>4.5f]\n",
+                 iters: its,
+lo: lo,
+lo_npv: lo_npv # if verbose
+          its += 1
         end
-      else
-        # Both zero?  Return them both as guesses.  Do nothing, the initial
-        # guesses will get returned.
-        true
       end
+      # else
+      #   # Both zero?  Return them both as guesses.  Do nothing, the initial
+      #   # guesses will get returned.
+      #   true
+      # end
       return if (lo_npv.signum * hi_npv.signum).positive?
 
       [lo, hi]
