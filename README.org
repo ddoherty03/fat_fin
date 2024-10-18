@@ -26,6 +26,11 @@ If bundler is not being used to manage dependencies, install the gem by executin
     - [[#computing-the-annualized-growth-rate-between-two-cashpoints-with-cagr-cagr][Computing the annualized growth rate between two ~CashPoints~ with #cagr (CAGR)]]
   - [[#cashflow-class][~CashFlow~ class]]
     - [[#constructing-cashflow-object][Constructing ~CashFlow~ object]]
+    - [[#attributes-of-a-cashflow][Attributes of a ~CashFlow~]]
+      - [[#first-and-last-dates][First and Last Dates]]
+      - [[#years-between-first-and-last][Years Between First and Last]]
+      - [[#number-of-cashpoints][Number of CashPoints]]
+      - [[#extracting-the-dates-values-and-cashpoints][Extracting the Dates, Values and CashPoints]]
     - [[#computing-a-cashflows-value-on-a-different-date-with-value_on-npv][Computing a ~CashFlow~'s value on a different date with ~#value_on~ (NPV)]]
     - [[#computing-a-cashflows-internal-rate-of-return-with-irr-irr][Computing a ~CashFlow~'s internal rate of return with ~#irr~ (IRR)]]
     - [[#computing-a-cashflows-a-modified-internal-rate-of-return-with-mirr-mirr-aka-mwirr][Computing a ~CashFlow~'s a modified internal rate of Return with ~#mirr~ (MIRR aka MWIRR)]]
@@ -41,15 +46,16 @@ This gem, ~fat_fin~, defines classes for dealing with certain financial
 calculations involving the time-value of money.  It's base class is
 ~CashPoint~ which represents a quantity of money tied to a particular date.
 
-#+begin_src ruby
+#+begin_src ruby :results output
+  dev_lib = File.expand_path('./lib')
+  $:.unshift(dev_lib) unless $:.include?(dev_lib)
+  dev_bin = File.expand_path('./bundle/bin')
+  ENV['PATH'] = ENV['PATH'].split(':').unshift(dev_bin).join(':') unless ENV['PATH'].split(':').include?(dev_bin)
+
   require 'bundler/setup'
   require 'fat_fin'
+  puts $:
 #+end_src
-
-#+RESULTS:
-#+begin_example
-false
-#+end_example
 
 *** Constructing a ~CashPoint~  object
 A new ~CashPoint~ needs an amount and, optionally, a date to be initialized.
@@ -60,7 +66,7 @@ If no date is given, it uses the ~Date.today~ as its date.
 #+end_src
 
 #+begin_example
-#<FatFin::CashPoint:0x00007f9a8f882f58 @amount=25000.0, @date=Sun, 18 Apr 2021>
+#<FatFin::CashPoint:0x00007e2e3a13d918 @amount=25000.0, @date=Sun, 18 Apr 2021>
 #+end_example
 
 The value for the ~date~ parameter can be a string parseable as a date with
@@ -96,23 +102,25 @@ If no rate is given a 10% rate is (arbitrarily) used and if no date is given,
 it uses its own date.  Here's how the value progresses through time:
 
 #+begin_src ruby
-  [['2024-09-12', cp1.date.iso, '2020-05-16'], nil,
-  [cp1.value_on('2020-05-16'),
-   cp1.value_on('2022-05-16'),
-   cp1.value_on('2024-05-16')]
+  [[cp1.date.iso, (cp1.date + 2.years).iso, (cp1.date + 4.years).iso], nil,
+  [cp1.value_on(cp1.date).commas(2),
+   cp1.value_on(cp1.date + 2.years).commas(2),
+   cp1.value_on(cp1.date + 4.years).commas(2)]
   ]
 #+end_src
 
 #+begin_example
-|         2024-09-12 |        2021-04-18 |         2020-05-16 |
-|--------------------+-------------------+--------------------|
-| 22896.376327119215 | 27704.61535581425 | 33522.584580535244 |
+| 2021-04-18 | 2023-04-18 | 2025-04-18 |
+|------------+------------+------------|
+|  25,000.00 |  30,250.00 |  36,602.50 |
 #+end_example
+
+I used the ~#commas~ method from my ~fat_core~ gem to make the numbers more
+readable.
 
 Besides varying the valuation date and the rate used, the ~#value_on~ method
 also allows you to optionally specify the number of compounding periods per
-year with the ~freq:~ parameter.  I use the ~#commas~ method from my
-~fat_core~ gem here to make the numbers more readable.
+year with the ~freq:~ parameter.
 
 #+begin_src ruby
   [[0, 1, 2, 3, 4, 6, 12, :cont], nil,
@@ -203,14 +211,14 @@ very favorable 29%, but it can go the other way too: had we started with
 ** ~CashFlow~ class
 
 While the ~CashPoint~ class represents a single value at a single point of time,
-sometime we want to analyze a whole sequence of ~CashPoints~, and this is what
+sometimes we want to analyze a whole sequence of ~CashPoints~, and this is what
 the ~CashFlow~ class provides.
 
 *** Constructing ~CashFlow~ object
 
 A ~CashFlow~ object consists of a collection of ~CashPoint~ objects that can
 be passed to the initializer as an array or can be added to it after creation
-with an ~add_time_value~ method or its equivalent, the ~<<~ shovel operator.
+with an ~add_cash_point~ method or its equivalent, the ~<<~ shovel operator.
 
 Suppose one wanted to model an investment that requires a $40,000 up front
 investment and a $5,000 investment after 18 months.  It promises to earn
@@ -233,16 +241,22 @@ end of that time.
     flow << FatFin::CashPoint.new(2_000, date: earn_date + k.months)
   end
 
-  # Add the salvage value at the end with the add_time_value method.
-  flow.add_time_value(FatFin::CashPoint.new(15_000, date: earn_date + 21.months))
+  # Add the salvage value at the end with the add_cash_point method.
+  flow.add_cash_point(FatFin::CashPoint.new(15_000, date: earn_date + 21.months))
 
   # Format it all as a table
   tab = [["Date", "Amount"], nil]
-  flow.time_values.each do |cp|
+  flow.cash_points.each do |cp|
     tab << [cp.date.iso, cp.amount.commas(2)]
   end
   tab
 #+end_src
+
+#+RESULTS:
+#+begin_example
+| Date | Amount |
+|------+--------|
+#+end_example
 
 #+begin_example
 | Date       |     Amount |
@@ -269,6 +283,92 @@ end of that time.
 | 2023-08-15 |   2,000.00 |
 | 2023-09-15 |   2,000.00 |
 | 2023-11-15 |  15,000.00 |
+#+end_example
+
+*** Attributes of a ~CashFlow~
+
+**** First and Last Dates
+Once constructed, you can query for certain attributes of a ~CashFlow~ object.
+For one, you can get its first and last date:
+
+#+begin_src ruby
+  [[ 'First', 'Last'],
+  nil,
+  [flow.first_date.iso,
+  flow.last_date.iso]]
+#+end_src
+
+#+RESULTS:
+#+begin_example
+| First      | Last       |
+|------------+------------|
+| 2022-01-15 | 2023-11-15 |
+#+end_example
+
+**** Years Between First and Last
+Using the ~#years~ method, you can get the number of years between the first
+and last ~CashPoint~ in the ~CashFlow~.  The number of years is expressed as a
+floating point number computed as the number of days between the first and
+last ~CashPoint~s divided by 365.25
+
+#+begin_src ruby
+  flow.years
+#+end_src
+
+#+begin_example
+1.8316221765913758
+#+end_example
+
+**** Number of CashPoints
+The method ~#size~ returns the number of ~CashPoint~s in the ~CashFlow~:
+
+#+begin_src ruby
+flow.size
+#+end_src
+
+#+begin_example
+22
+#+end_example
+
+**** Extracting the Dates, Values and CashPoints
+You may want to extract the dates, values, or individual ~CashPoint~ objects:
+
+#+begin_src ruby
+  flow.dates.map { |d| [d.iso] }
+#+end_src
+
+#+begin_example
+| 2022-01-15 |
+| 2022-02-15 |
+| 2022-03-15 |
+| 2022-04-15 |
+| 2022-05-15 |
+| 2022-06-15 |
+| 2022-07-15 |
+| 2022-08-15 |
+| 2022-09-15 |
+| 2022-10-15 |
+| 2022-11-15 |
+| 2022-12-15 |
+| 2023-01-15 |
+| 2023-02-15 |
+| 2023-03-15 |
+| 2023-04-15 |
+| 2023-05-15 |
+| 2023-06-15 |
+| 2023-07-15 |
+| 2023-08-15 |
+| 2023-09-15 |
+| 2023-11-15 |
+#+end_example
+
+#+begin_src ruby
+  flow.amounts.map { |d| [d] }
+#+end_src
+
+#+RESULTS:
+#+begin_example
+:org_babel_ruby_eoe
 #+end_example
 
 *** Computing a ~CashFlow~'s value on a different date with ~#value_on~ (NPV)
@@ -559,7 +659,7 @@ example, we could do this:
 
   # Format it all as a table
   tab = [["Date", "Amount"], nil]
-  flow3q.time_values.each do |cp|
+  flow3q.cash_points.each do |cp|
     tab << [cp.date.iso, cp.amount.commas(2)]
   end
   tab
