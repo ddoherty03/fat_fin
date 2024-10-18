@@ -12,14 +12,15 @@ module FatFin
       cash_points = cash_points.to_a
       raise ArgumentError, "All CashFlow components must be CashPoints" unless cash_points.all?(FatFin::CashPoint)
 
-      # Build Hash keyed on CashPoint dates.
-      @cash_points = {}
-      cash_points.each do |tv|
-        @cash_points[tv.date] =
-          if @cash_points[tv.date]
-            @cash_points[tv.date].merge(tv)
+      # Build Hash keyed on CashPoint dates. This will faciliatate merging of
+      # one CashFlow into another.
+      @flow_hash = {}
+      cash_points.each do |cp|
+        @flow_hash[cp.date] =
+          if @flow_hash[cp.date]
+            @flow_hash[cp.date].merge(cp)
           else
-            tv
+            cp
           end
       end
     end
@@ -29,13 +30,13 @@ module FatFin
     end
 
     # Add a new CashPoint to an existing CashFlow.
-    def add_cash_point(tval)
-      raise ArgumentError, "CashFlow component must be a CashPoint" unless tval.is_a?(FatFin::CashPoint)
+    def add_cash_point(cp)
+      raise ArgumentError, "CashFlow component must be a CashPoint" unless cp.is_a?(FatFin::CashPoint)
 
-      if @cash_points.key?(tval.date)
-        @cash_points[tval.date].merge(tval)
+      if flow_hash.key?(cp.date)
+        flow_hash[cp.date].merge(cp)
       else
-        @cash_points[tval.date] = tval
+        flow_hash[cp.date] = cp
       end
       self
     end
@@ -46,8 +47,8 @@ module FatFin
       when CashPoint
         add_cash_point(other)
       when CashFlow
-        other.cash_points.each do |tv|
-          add_cash_point(tv)
+        other.cash_points.each do |cp|
+          add_cash_point(cp)
         end
       else
         raise ArgumentError, "May only merge CashFlow or CashPoint" unless tval.is_a?(FatFin::CashPoint)
@@ -87,8 +88,10 @@ module FatFin
       size.zero?
     end
 
-    def tv_sum
-      cash_points.sum(&:amount)
+    def sum
+      amounts.sum
+    end
+
     end
 
     # Return the Period from the first to the last CashPoint in this CashFlow.

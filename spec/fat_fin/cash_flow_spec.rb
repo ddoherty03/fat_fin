@@ -2,7 +2,7 @@
 
 module FatFin
   RSpec.describe CashFlow do
-    let!(:tvs) do
+    let!(:cps) do
       all = []
       dt = Date.parse('2022-08-14')
       amt = -10_000
@@ -14,7 +14,7 @@ module FatFin
       all
     end
     let!(:flow) do
-      flw = CashFlow.new(tvs)
+      flw = CashFlow.new(cps)
       flw.add_cash_point(CashPoint.new(1479.33, date: Date.parse('2024-09-14')))
       flw
     end
@@ -117,11 +117,11 @@ module FatFin
       describe "README Example" do
         let(:rm_flow) do
           start_date = Date.parse("2022-01-15")
-          tvs = [
+          cps = [
             FatFin::CashPoint.new(-40_000, date: start_date),
             FatFin::CashPoint.new(-5_000, date: start_date + 18.months)
           ]
-          flw = FatFin::CashFlow.new(tvs)
+          flw = FatFin::CashFlow.new(cps)
           # Add additional CashPoints representing the earnings with the << shovel
           # operator
           earn_date = start_date + 1.month
