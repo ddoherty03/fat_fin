@@ -1,6 +1,6 @@
 # -*- mode: yaml -*-
 
-inherit_from: ~/.rubocop.yml
+inherit_from: rubocop_common.yml
 
 RSpec/MultipleMemoizedHelpers:
   Max: 8
