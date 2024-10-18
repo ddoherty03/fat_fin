@@ -33,24 +33,69 @@ module FatFin
       end
     end
 
-    describe "time value" do
+    describe "#value_on" do
       it "computes value on a given date" do
         expect(flow.value_on(flow.cash_points.first.date, rate: 0.05)).to be_within(eps).of(1722.37916)
       end
     end
 
     describe "attribute methods" do
+      it '#amounts' do
+        expect(flow.amounts).to all be_a(Float)
+        expect(mt_flow.amounts).to be_empty
+      end
+
       it "#cash_points" do
         expect(flow.cash_points).to all be_a(CashPoint)
+        expect(mt_flow.cash_points).to be_empty
+      end
+
+      it "#dates" do
+        expect(flow.dates).to all be_a(Date)
+        expect(mt_flow.cash_points).to be_empty
+      end
+
+      it "#first_date" do
+        expect(flow.first_date).to eq(Date.parse('2022-08-14'))
+      end
+
+      it "#last_date" do
+        expect(flow.last_date).to eq(Date.parse('2024-09-14'))
+      end
+
+      it "#years" do
+        expect(flow.years).to be_within(eps).of(2.0862422)
+        expect(mt_flow.years).to eq(0)
       end
 
       it "#size" do
         expect(flow.size).to eq(21)
+        expect(mt_flow.size).to eq(0)
       end
 
       it "#empty?" do
         expect(flow).not_to be_empty
         expect(mt_flow).to be_empty
+      end
+
+      it '#sum' do
+        expect(flow.sum).to be_within(eps).of(2579.33)
+        expect(mt_flow.sum).to be_within(eps).of(0)
+      end
+
+      it '#positive_sum' do
+        expect(flow.positive_sum).to be_within(eps).of(18479.33)
+        expect(mt_flow.positive_sum).to be_within(eps).of(0)
+      end
+
+      it '#negative_sum' do
+        expect(flow.negative_sum).to be_within(eps).of(-15900.00)
+        expect(mt_flow.negative_sum).to be_within(eps).of(0)
+      end
+
+      it '#mixed_signs?' do
+        expect(flow).to be_mixed_signs
+        expect(mt_flow).not_to be_mixed_signs
       end
 
       it "#period" do

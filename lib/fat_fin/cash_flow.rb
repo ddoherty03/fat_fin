@@ -58,31 +58,38 @@ module FatFin
       self
     end
 
+    # Return the array of amounts of the CashPoints
+    def amounts
+      flow_hash.values.map(&:amount)
+    end
+
     # Return the array of CashPoints
     def cash_points
-      @cash_points.values.sort
+      flow_hash.values.sort
     end
 
     # Return the array of the dates in this CashFlow, sorted.
     def dates
-      @cash_points.keys.sort
+      flow_hash.keys.sort
     end
 
     def first_date
-      cash_points.first.date
+      dates.first
     end
 
     def last_date
-      cash_points.last.date
+      dates.last
     end
 
     def years
-      last_date.month_diff(first_date) / 12.0
+      return 0.0 if empty?
+
+      (last_date - first_date) / 365.25
     end
 
     # Return the number of CashPoints in this CashFlow.
     def size
-      cash_points.size
+      flow_hash.size
     end
 
     # Return whether this CashFlow has no CashPoints, i.e., is empty.
@@ -94,6 +101,19 @@ module FatFin
       amounts.sum
     end
 
+    def positive_sum
+      amounts.select(&:positive?).sum
+    end
+
+    def negative_sum
+      amounts.select(&:negative?).sum
+    end
+
+    # IRR cannot be computed unless the CashFlow has at least one positive and
+    # one negative value.  This tests for that.
+    def mixed_signs?
+      pos, neg = pos_neg_partition
+      pos.size >= 1 && neg.size >= 1
     end
 
     # Return the Period from the first to the last CashPoint in this CashFlow.
@@ -142,7 +162,7 @@ module FatFin
     # result, you may have better luck using a different initial guess, but
     # sometimes there is no rate that can produce an NPV of zero.  For
     # example, a CashFlow with all positive or all negative CashPoints will
-    # never yeild an NPV os zero.  You can print the progress of the
+    # never yeild an NPV of zero.  You can print the progress of the
     # algorithim by setting the verbose: parameter (default false) to true.
     def irr(eps: DEFAULT_EPS, guess: nil, freq: 1, verbose: false)
       return 0.0 if cash_points.empty?
@@ -353,13 +373,6 @@ module FatFin
     # the given date, using the given rate and compunding frequency.
     def value_on_prime(on_date = cash_points.first&.date || Date.today, rate: 0.1, freq: 1)
       cash_points.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
-    end
-
-    # IRR cannot be computed unless the CashFlow has at least one positive and
-    # one negative value.  This tests for that.
-    def mixed_signs?
-      pos, neg = pos_neg_partition
-      pos.size >= 1 && neg.size >= 1
     end
   end
 end
