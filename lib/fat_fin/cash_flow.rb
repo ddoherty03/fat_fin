@@ -8,6 +8,8 @@ module FatFin
 
     DEFAULT_EPS = 0.0000001
 
+    attr_accessor :flow_hash
+
     def initialize(cash_points = [])
       cash_points = cash_points.to_a
       raise ArgumentError, "All CashFlow components must be CashPoints" unless cash_points.all?(FatFin::CashPoint)

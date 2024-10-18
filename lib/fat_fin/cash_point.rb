@@ -10,14 +10,18 @@ module FatFin
     using DateExtension
 
     attr_reader :date
-    attr_accessor :amount
+    attr_reader :amount
 
     def initialize(amount, date: Date.today)
-      @amount = amount
+      @amount = amount.to_f
       @date = Date.ensure_date(date)
     end
 
     include Comparable
+
+    def amount=(amt)
+      @amount = amt.to_f
+    end
 
     def <=>(other)
       date <=> other.date
