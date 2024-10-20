@@ -347,16 +347,14 @@ module FatFin
       mirr
     end
 
-    private
-
-    def pos_neg_partition
+    private def pos_neg_partition
       pos, neg = cash_points.filter { |pmt| !pmt.amount.zero? }.partition { |pmt| pmt.amount.positive? }
       [CashFlow.new(pos), CashFlow.new(neg)]
     end
 
     # Return an estimated guess for IRR based on ratio of inflows to outflows
     # over the period of this CashFlow.
-    def initial_guess
+    private def initial_guess
       total_inflows, total_outflows = pos_neg_partition
       in_sum = total_inflows.sum.to_f
       out_sum = total_outflows.sum.abs.to_f
@@ -366,7 +364,7 @@ module FatFin
     end
 
     # Look for a low and high guess across which the NPV changes sign
-    def lo_hi_guesses(freq: 1)
+    private def lo_hi_guesses(freq: 1)
       # return [-1.0, 1.0]
       # ratio = positive_sum / negative_sum.abs
       # if ratio > 1
@@ -401,10 +399,10 @@ module FatFin
           hi_npv = value_on(first_date, rate: hi, freq: freq)
           printf "Hi Guess Iter: %<iters>d Rate[%<lo>0.5f, %<hi>0.5f] NPV[%<lo_npv>4.5f %<hi_npv>4.5f]\n",
                  iters: its,
-lo: lo,
-hi: hi,
-lo_npv: lo_npv,
-hi_npv: hi_npv # if verbose
+                 lo: lo,
+                 hi: hi,
+                 lo_npv: lo_npv,
+                 hi_npv: hi_npv # if verbose
           its += 1
         end
       end
@@ -417,8 +415,8 @@ hi_npv: hi_npv # if verbose
           lo_npv = value_on(first_date, rate: lo, freq: freq)
           printf "Lo Guess Iter: %<iters>d Rate[%<lo>0.5f] NPV[%<lo_npv>4.5f]\n",
                  iters: its,
-lo: lo,
-lo_npv: lo_npv # if verbose
+                 lo: lo,
+                 lo_npv: lo_npv # if verbose
           its += 1
         end
       end
@@ -434,7 +432,7 @@ lo_npv: lo_npv # if verbose
 
     # Return the /derivative/ of the net present value of the CashFlow as of
     # the given date, using the given rate and compunding frequency.
-    def value_on_prime(on_date = cash_points.first&.date || Date.today, rate: 0.1, freq: 1)
+    private def value_on_prime(on_date = cash_points.first&.date || Date.today, rate: 0.1, freq: 1)
       cash_points.sum(0.0) { |pmt| pmt.value_on_prime(on_date, rate: rate, freq: freq) }
     end
   end
