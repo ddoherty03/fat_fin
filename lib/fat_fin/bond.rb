@@ -2,6 +2,10 @@
 
 module FatFin
   class Bond
+    using DateExtension
+    using NumericExcelExtension
+    using FloatNearly
+
     attr_reader :maturity, :coupon, :term, :issue_date, :face, :freq, :eom
 
     def initialize(args = {})
@@ -173,23 +177,23 @@ module FatFin
       pv_coup += coupon_pmt
       # Now discount it as a point payment back to settlement date
       pv_coup =
-        CashFlowPoint.new(amount: pv_coup, payout_date: nxt_coup_date)
-          .value_on(date: settle_date, rate: yld, freq: 0)
+        CashPoint.new(pv_coup, date: nxt_coup_date)
+          .value_on(settle_date, rate: yld, freq: 0)
 
       # PV factor for face at maturity
       # If there are $N coupons after settlement, there are only $N-1 *periods*,
       # so discount the face back this number of periods to get PV to the
       # next coupon date.
       pv_face =
-        CashFlowPoint.new(amount: face, payout_date: maturity)
-          .value_on(date: nxt_coup_date, rate: yld, freq: freq)
+        CashPoint.new(face, date: maturity)
+          .value_on(nxt_coup_date, rate: yld, freq: freq)
       # Then discount as a point payment back to settlement date.
       pv_face =
-        CashFlowPoint.new(
-          amount: pv_face,
-          payout_date: nxt_coup_date,
+        CashPoint.new(
+          pv_face,
+          date: nxt_coup_date,
         )
-          .value_on(date: settle_date, rate: yld, freq: 0)
+          .value_on(settle_date, rate: yld, freq: 0)
 
       # Portion of the first coupon that belongs to seller of the bond
       f = factor(settle_date, convention)
@@ -314,8 +318,8 @@ module FatFin
       cdate = next_coupon_date(settle_date)
       while cdate <= maturity
         ytc = cdate.month_diff(settle_date) / 12.0
-        cf_coup = CashFlowPoint.new(amount: coupon_pmt, payout_date: cdate)
-        pv_coup = cf_coup.value_on(date: settle_date, rate: yld, freq: freq)
+        cf_coup = CashPoint.new(coupon_pmt, date: cdate)
+        pv_coup = cf_coup.value_on(settle_date, rate: yld, freq: freq)
         moment += ytc * pv_coup
         if verbose
           puts "Coup: #{cdate}; Amt: #{coupon_pmt}: PV: #{pv_coup}; Yrs: #{ytc}"
@@ -325,8 +329,8 @@ module FatFin
 
       # Add moment of face
       ytm = maturity.month_diff(settle_date) / 12.0
-      pvm = CashFlowPoint.new(amount: face, payout_date: maturity)
-              .value_on(date: settle_date, rate: yld, freq: freq)
+      pvm = CashPoint.new(face, date: maturity)
+              .value_on(settle_date, rate: yld, freq: freq)
       moment += ytm * pvm
       if verbose
         puts "Maturity on #{maturity}: Amount; face: PV: #{pvm}; Yrs: #{ytm}"
@@ -480,20 +484,20 @@ module FatFin
         # Nnl JulianDays(15-Dec-2007, 1-Jan-2008) 17
         # Nly JulianDays(1-Jan-2008, 10-Jan-2008) 9
         # Fact  ( {17 / 365} + {9 / 366} )  0.07116551
-        if date1.is_leap? == date2.is_leap?
+        if date1.leap? == date2.leap?
           # Both date1 and date2 are in same kind of year
           num = (date2 - date1).to_f
           den = 365.0
-          den = 366.0 if date1.is_leap?
+          den = 366.0 if date1.leap?
           fact = (num / den)
         else
           # One is in a leap, the other not
           num1 = (Date.new(date2.year, 1, 1) - date1).to_f
           den1 = 365.0
-          den1 = 366.0 if date1.is_leap?
+          den1 = 366.0 if date1.leap?
           num2 = (date2 - Date.new(date2.year, 1, 1)).to_f
           den2 = 365.0
-          den2 = 366.0 if date2.is_leap?
+          den2 = 366.0 if date2.leap?
           fact = (num1.to_f / den1.to_f) + (num2.to_f / den2)
         end
       elsif conv == 2

@@ -2,15 +2,15 @@
 
 module FatFin
   class Annuity
-    attr_reader :years, :amount, :freq
+    attr_reader :periods, :amount, :freq
 
-    def initialize(years: 1, amount: 0.0, freq: 1)
-      @years = years
+    def initialize(periods: 1, amount: 0.0, freq: 1)
+      @periods = periods
       @amount = amount
     end
 
     def to_s
-      "Annuity[#{@years} years of #{@amount}, compounding #{freq} times per year]"
+      "Annuity[#{@periods} periods of #{@amount}, compounding #{freq} times per year]"
     end
 
     def present_value(rate: 0.1)
