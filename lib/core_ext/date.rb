@@ -5,7 +5,11 @@ module FatFin
   # month-basaed financial calulations.
   module DateExtension
     refine Date do
-      # Return the number of months between self and other date.
+      def Date.excel(i)
+        k = i <= 60 ? 1 : 0
+        Date.new(1899, 12, 30) + i + k
+      end
+
       def month_diff(other_date, whole: false)
         other_date = Date.ensure(other_date)
         case other_date

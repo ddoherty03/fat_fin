@@ -18,6 +18,8 @@ module FatFin
   require "fat_core/all"
   require "fat_period"
   require "core_ext/date"
+  require "core_ext/numeric"
+  require "core_ext/float"
   require "fat_fin/cash_point"
   require "fat_fin/cash_flow"
   require "fat_fin/annuity"
