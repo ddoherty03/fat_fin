@@ -1,8 +1,7 @@
-  # frozen_string_literal: true
+# frozen_string_literal: true
 
 module FatFin
-    RSpec.describe Bond do
-    using NumericExcelExtension
+  RSpec.describe Bond do
 
     describe '#price' do
       it 'Example 1' do
@@ -110,30 +109,30 @@ module FatFin
       end
     end
 
-      describe '#modified_duration' do
-        it 'Investopedia example' do
-          b = Bond.new(maturity: '2010-07-01',
-                       coupon: 0.05,
+    describe '#modified_duration' do
+      it 'Investopedia example' do
+        b = Bond.new(maturity: '2010-07-01',
+                     coupon: 0.05,
                      face: 1000.0,
                      frequency: 1)
-          expect(b.modified_duration(yld: 0.05, settle_date: '2005-07-01')).to be_within(0.01).of(4.33)
-        end
-
-        it 'Excel example' do
-          b = Bond.new(maturity: '2016-01-01',
-                       coupon: 0.08,
-                       face: 100.0,
-                       frequency: 2)
-          expect(b.modified_duration(yld: 0.09, settle_date: '2008-01-01')).to be_within(0.01).of(5.73567)
-        end
-
-        it 'Libreoffice example' do
-          b = Bond.new(maturity: '2006-01-01',
-                       coupon: 0.08,
-                       face: 100.0,
-                       frequency: 2)
-          expect(b.modified_duration(yld: 0.09, settle_date: '2001-01-01', convention: 1)).to be_within(0.01).of(4.02)
-        end
+        expect(b.modified_duration(yld: 0.05, settle_date: '2005-07-01')).to be_within(0.01).of(4.33)
       end
+
+      it 'Excel example' do
+        b = Bond.new(maturity: '2016-01-01',
+                     coupon: 0.08,
+                     face: 100.0,
+                     frequency: 2)
+        expect(b.modified_duration(yld: 0.09, settle_date: '2008-01-01')).to be_within(0.01).of(5.73567)
+      end
+
+      it 'Libreoffice example' do
+        b = Bond.new(maturity: '2006-01-01',
+                     coupon: 0.08,
+                     face: 100.0,
+                     frequency: 2)
+        expect(b.modified_duration(yld: 0.09, settle_date: '2001-01-01', convention: 1)).to be_within(0.01).of(4.02)
+      end
+    end
   end
 end
