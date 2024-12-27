@@ -5,6 +5,7 @@ module FatFin
   # necessarily evenly spaced.
   class CashFlow
     using DateExtension
+    using FloatExtension
 
     DEFAULT_EPS = 0.0000001
 
@@ -175,7 +176,7 @@ module FatFin
       try_irr = guess
       recovery_tried = false
       iters = 1
-      while (npv = value_on(first_date, rate: try_irr, freq: freq)).abs > eps
+      until (npv = value_on(first_date, rate: try_irr, freq: freq)).close_to?(0.0, abs_tol: eps)
         if iters > 100 && !recovery_tried
           puts "Reached 100 iterations: switching to binary search algorithm ... " if verbose
           return birr(eps: eps, freq: freq, verbose: verbose)
@@ -184,7 +185,7 @@ module FatFin
         npv_prime = value_on_prime(first_date, rate: try_irr, freq: freq)
         if npv_prime.is_a?(Complex)
           if verbose
-            prec = precision_of(eps)
+            prec = eps.precision
             puts "NPV' turned Complex': switching to binary search algorithm ... " if verbose
             fmt_str = "Iter: %<iters>d, Guess: %<try_irr>4.#{prec}f; " \
               "NPV: %<npv>4.#{prec}f; NPV': %<npv_prime>s\n"
@@ -193,7 +194,7 @@ module FatFin
           return birr(eps: eps, freq: freq, verbose: verbose)
         end
 
-        if npv_prime.abs < eps
+        if npv_prime.close_to?(0.0, abs_tol: eps)
           puts "Derivative of NPV near zero: switching to binary search algorithm ... "
           return birr(eps: eps, freq: freq, verbose: verbose)
         end
@@ -216,7 +217,7 @@ module FatFin
           recovery_tried = true
           next
         end
-        break if (new_irr - try_irr).abs <= eps
+        break if new_irr.close_to?(try_irr, abs_tol: eps) # (new_irr - try_irr).abs <= eps
 
         try_irr = new_irr
         iters += 1
@@ -265,7 +266,7 @@ module FatFin
       if verbose
         puts "Binary search (eps = #{eps}):"
         puts "-" * 30
-        prec = precision_of(eps)
+        prec = eps.precision
         fmt_str = "Iter: %<iters>d Rate[%<lo>4.#{prec}f, %<hi>4.#{prec}f]; " \
           "NPV[%<lo_npv>4.#{prec}f {} %<hi_npv>4.#{prec}f]\n"
         printf fmt_str, { iters: iters, lo: lo_rate, hi: hi_rate, lo_npv: lo_npv, hi_npv: hi_npv }
@@ -283,7 +284,8 @@ module FatFin
         mid_npv = value_on(first_date, rate: mid_rate, freq: freq)
 
         # Check if the NPV at midpoint is close enough to zero
-        if mid_npv.abs < eps
+        # if mid_npv.abs < eps
+        if mid_npv.close_to?(0.0, abs_tol: eps)
           printf "NPV close enough to zero\n" if verbose
           result = mid_rate
           break
@@ -297,11 +299,6 @@ module FatFin
           lo_rate = mid_rate
           lo_npv = mid_npv
         end
-        # if (hi_rate - lo_rate).abs < eps  # && ((((hi_npv - lo_npv) / mid_npv).abs < eps) ¦| mid_npv <= eps))
-        #   printf "Rates close enough together\n" if verbose
-        #   result = mid_rate
-        #   break
-        # end
 
         iters += 1
         if verbose
@@ -420,11 +417,6 @@ module FatFin
           its += 1
         end
       end
-      # else
-      #   # Both zero?  Return them both as guesses.  Do nothing, the initial
-      #   # guesses will get returned.
-      #   true
-      # end
       return if (lo_npv.signum * hi_npv.signum).positive?
 
       [lo, hi]

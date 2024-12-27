@@ -4,7 +4,7 @@ module FatFin
   class Bond
     using DateExtension
     using NumericExcelExtension
-    using FloatNearly
+    using FloatExtension
 
     attr_reader :maturity, :coupon, :term, :issue_date, :face, :freq, :eom
 
@@ -243,7 +243,7 @@ module FatFin
       # of the given $price
       max_iter = 50
       iterations = 0
-      until low.nearly?(high, places) || iterations >= max_iter
+      until low.close_to?(high) || iterations >= max_iter
         iterations += 1
         mid = (low + high) / 2.0
         computed_price = price(
