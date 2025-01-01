@@ -2,13 +2,6 @@
 
 require "debug"
 
-require "date"
-class << Date
-  def ensure(other)
-    ensure_date(other)
-  end
-end
-
 # Namespace module for the financial classes and methods implemented in this
 # library.
 module FatFin

@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     fat_fin (0.2.1)
-      fat_core
+      fat_core (>= 5.1.0)
       fat_period
 
 GEM
@@ -30,7 +30,7 @@ GEM
       reline (>= 0.3.8)
     diff-lcs (1.5.1)
     drb (2.2.1)
-    fat_core (5.0.1)
+    fat_core (5.4.0)
       activesupport
       damerau-levenshtein
     fat_period (1.4.0)
