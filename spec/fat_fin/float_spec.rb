@@ -1,4 +1,5 @@
 module FatFin
+  # rubocop:disable RSpec/PredicateMatcher
   RSpec.describe Float do
     using FloatExtension
 
@@ -46,4 +47,5 @@ module FatFin
       end
     end
   end
+  # rubocop:enable RSpec/PredicateMatcher
 end
