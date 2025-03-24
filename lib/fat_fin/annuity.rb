@@ -27,23 +27,22 @@ module FatFin
     attr_reader :periods, :present_value, :future_value, :rate, :payment
 
     def initialize(periods: nil, present_value: nil, future_value: nil, rate: nil, payment: nil)
-      n_nils = [periods, present_value, future_value, rate, payment].select(&:nil?).size
+      n_nils = [periods, present_value, future_value, rate, payment].count(&:nil?)
       case n_nils
       when 0
         raise ArgumentError, "At least one of the annuity parameters must be nil"
       when 1
-        solve_for =
-          if periods.nil?
-            :periods
-          elsif present_value.nil?
-            :present_value
-          elsif future_value.nil?
-            :future_value
-          elsif rate.nil?
-            :rate
-          else
-            :payment
-          end
+        if periods.nil?
+          :periods
+        elsif present_value.nil?
+          :present_value
+        elsif future_value.nil?
+          :future_value
+        elsif rate.nil?
+          :rate
+        else
+          :payment
+        end
       else
         raise ArgumentError, "No more than one of the annuity parameters may be nil"
       end
