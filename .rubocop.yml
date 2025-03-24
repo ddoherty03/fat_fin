@@ -1,12 +1,9 @@
-# -*- mode: yaml -*-
-
-require:
+plugins:
   - rubocop-rspec
   - rubocop-performance
-  - rubocop-rake
 
 inherit_gem:
-    rubocop-shopify: rubocop.yml
+  rubocop-shopify: rubocop.yml
 
 AllCops:
   NewCops: enable
@@ -174,7 +171,7 @@ RSpec/DescribedClass:
   Enabled: false
 
 RSpec/MultipleMemoizedHelpers:
-  Max: 8
+  Max: 10
 
 RSpec/NestedGroups:
   Max: 5
