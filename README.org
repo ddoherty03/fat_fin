@@ -241,7 +241,7 @@ opposite extreme: compounding continuously.  Though compounding 12 times per
 year results in a higher rate than compounding 2 times per year, more frequent
 compounding settles to a limit represented by the exponential function.  That
 is, compounding a 10% annual rate continuously for 3 years works out to around
-34.986%, given by the formula $e^{rt$}$ where $r$ is the annual interest rate and
+34.986%, given by the formula $e^{rt}$ where $r$ is the annual interest rate and
 $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
 *** Computing the annualized growth rate between two ~CashPoints~ with #cagr (CAGR)

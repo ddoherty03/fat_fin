@@ -1,24 +1,24 @@
-- [Installation](#org13e837f)
-- [Usage](#org3593b7c)
-  - [`CashPoint` class](#orge1ae208)
-    - [Constructing a `CashPoint`  object](#org52505ca)
-    - [Computing a `CashPoint`'s value on a different date with #value<sub>on</sub> (PV and FV)](#orge05424e)
-    - [Computing the annualized growth rate between two `CashPoints` with #cagr (CAGR)](#org9c2e5e9)
-  - [`CashFlow` class](#org628aebe)
-    - [Constructing `CashFlow` object](#orgeda4163)
-    - [Attributes of a `CashFlow`](#orgffcef2e)
-    - [Computing a `CashFlow`'s value on a different date with `#value_on` (NPV)](#org13dbc97)
-    - [Computing a `CashFlow`'s internal rate of return with `#irr` (IRR)](#orgad25a0c)
-    - [Computing a `CashFlow`'s a modified internal rate of Return with `#mirr` (MIRR aka MWIRR)](#org8883727)
-    - [Using Non-Standard Compounding](#org59d8b13)
-    - [Subsetting `CashFlow` with `#within(period)`](#org341f954)
-- [Development](#org046a792)
-- [Contributing](#org7b7c804)
-- [License](#org89f33cb)
+- [Installation](#org9440f1f)
+- [Usage](#org743cf85)
+  - [`CashPoint` class](#org7e8e847)
+    - [Constructing a `CashPoint`  object](#orga9079cb)
+    - [Computing a `CashPoint`'s value on a different date with #value<sub>on</sub> (PV and FV)](#orgae752f9)
+    - [Computing the annualized growth rate between two `CashPoints` with #cagr (CAGR)](#org0cf6ab1)
+  - [`CashFlow` class](#orgad5495f)
+    - [Constructing `CashFlow` object](#org8903672)
+    - [Attributes of a `CashFlow`](#org2779854)
+    - [Computing a `CashFlow`'s value on a different date with `#value_on` (NPV)](#orgfcfefa8)
+    - [Computing a `CashFlow`'s internal rate of return with `#irr` (IRR)](#orga1ffddf)
+    - [Computing a `CashFlow`'s a modified internal rate of Return with `#mirr` (MIRR aka MWIRR)](#orgd32493b)
+    - [Using Non-Standard Compounding](#org270d953)
+    - [Subsetting `CashFlow` with `#within(period)`](#org4e50ca1)
+- [Development](#orgbe600bb)
+- [Contributing](#org9e848d5)
+- [License](#org5af4a95)
 
 
 
-<a id="org13e837f"></a>
+<a id="org9440f1f"></a>
 
 # Installation
 
@@ -35,19 +35,19 @@ $ gem install fat_fin
 ```
 
 
-<a id="org3593b7c"></a>
+<a id="org743cf85"></a>
 
 # Usage
 
 
-<a id="orge1ae208"></a>
+<a id="org7e8e847"></a>
 
 ## `CashPoint` class
 
 This gem, `fat_fin`, defines classes for dealing with certain financial calculations involving the time-value of money. It's base class is `CashPoint` which represents a quantity of money tied to a particular date.
 
 
-<a id="org52505ca"></a>
+<a id="orga9079cb"></a>
 
 ### Constructing a `CashPoint`  object
 
@@ -64,7 +64,7 @@ cp1 = FatFin::CashPoint.new(25_000.00, date: '2021-04-18')
 The value for the `date` parameter can be a string parseable as a date with `Date.parse`, a Date object, or any object that responds to the `#to_date` method, including `Time` and `DateTime`.
 
 
-<a id="orge05424e"></a>
+<a id="orgae752f9"></a>
 
 ### Computing a `CashPoint`'s value on a different date with #value<sub>on</sub> (PV and FV)
 
@@ -146,10 +146,10 @@ from /home/ded/src/fat_fin/lib/fat_fin/cash_point.rb:58:in 'FatFin::CashPoint#va
 
 But what about the other two frequencies, 0 and :cont? A frequency of 0 is taken as a request to use simple interest. That means that not only does interest *not* compound yearly nor many times a year, but that it *does not compound at all*. Simple interest of 10% for three years amounts to 30% (10% \* 3), while the same interest compounded annually works out closer to 33.1% ($(1 + 0.1)^3 = 1.1^3 = 1.331$)
 
-As for the special frequency represented by the symbol `:cont`, it goes to the opposite extreme: compounding continuously. Though compounding 12 times per year results in a higher rate than compounding 2 times per year, more frequent compounding settles to a limit represented by the exponential function. That is, compounding a 10% annual rate continuously for 3 years works out to around 34.986%, given by the formula $e^{rt$}$ where $r$ is the annual interest rate and $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
+As for the special frequency represented by the symbol `:cont`, it goes to the opposite extreme: compounding continuously. Though compounding 12 times per year results in a higher rate than compounding 2 times per year, more frequent compounding settles to a limit represented by the exponential function. That is, compounding a 10% annual rate continuously for 3 years works out to around 34.986%, given by the formula $e^{rt}$ where $r$ is the annual interest rate and $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
 
-<a id="org9c2e5e9"></a>
+<a id="org0cf6ab1"></a>
 
 ### Computing the annualized growth rate between two `CashPoints` with #cagr (CAGR)
 
@@ -184,14 +184,14 @@ results
 Had we started with only 15<sub>000</sub> two years earlier, the CAGR would have been a very favorable 29%, but it can go the other way too: had we started with 29<sub>000</sub>, it would indicate a negative growth of over 7%.
 
 
-<a id="org628aebe"></a>
+<a id="orgad5495f"></a>
 
 ## `CashFlow` class
 
 While the `CashPoint` class represents a single value at a single point of time, sometimes we want to analyze a whole sequence of `CashPoints`, and this is what the `CashFlow` class provides.
 
 
-<a id="orgeda4163"></a>
+<a id="org8903672"></a>
 
 ### Constructing `CashFlow` object
 
@@ -254,7 +254,7 @@ tab
 ```
 
 
-<a id="orgffcef2e"></a>
+<a id="org2779854"></a>
 
 ### Attributes of a `CashFlow`
 
@@ -362,7 +362,7 @@ tab
     ```
 
 
-<a id="org13dbc97"></a>
+<a id="orgfcfefa8"></a>
 
 ### Computing a `CashFlow`'s value on a different date with `#value_on` (NPV)
 
@@ -421,7 +421,7 @@ flow.value_on('2019-01-01', rate: 0.05, freq: :cont)
 ```
 
 
-<a id="orgad25a0c"></a>
+<a id="orga1ffddf"></a>
 
 ### Computing a `CashFlow`'s internal rate of return with `#irr` (IRR)
 
@@ -520,7 +520,7 @@ Iter: 15, Guess: 0.23407936; NPV: 0.000015873873; NPV': -33121.999771027127
 This initial guess of 7 caused the iterations to make no progress towards finding a solution. When the algorithm detects that the guesses are going out of control and that the initial guess was not close to the default, it resets it to the default guess and starts over. In this case it was able to recover and get the right answer.
 
 
-<a id="org8883727"></a>
+<a id="orgd32493b"></a>
 
 ### Computing a `CashFlow`'s a modified internal rate of Return with `#mirr` (MIRR aka MWIRR)
 
@@ -559,7 +559,7 @@ Modified internal rate of return: 0.15358746594066242
 ```
 
 
-<a id="org59d8b13"></a>
+<a id="org270d953"></a>
 
 ### Using Non-Standard Compounding
 
@@ -742,7 +742,7 @@ NPV close enough to zero
 ```
 
 
-<a id="org341f954"></a>
+<a id="org4e50ca1"></a>
 
 ### Subsetting `CashFlow` with `#within(period)`
 
@@ -805,7 +805,7 @@ tab
 It returns a new CashFlow that narrows this CashFlow to the given period. All CashPoints before the beginning of the period are rolled up into a single CashPoint having a date of the beginning of the period and an amount that represents their value<sub>on</sub> that date. All the CashPoints that fall within the period are retained and any CashPoints that are beyond the last date of the period are dropped.
 
 
-<a id="org046a792"></a>
+<a id="orgbe600bb"></a>
 
 # Development
 
@@ -814,14 +814,14 @@ After checking out the repo, run \`bin/setup\` to install dependencies. Then, ru
 To install this gem onto your local machine, run \`bundle exec rake install\`. To release a new version, update the version number in \`version.rb\`, and then run \`bundle exec rake release\`, which will create a git tag for the version, push git commits and the created tag, and push the \`.gem\` file to [rubygems.org](<https://rubygems.org>).
 
 
-<a id="org7b7c804"></a>
+<a id="org9e848d5"></a>
 
 # Contributing
 
 Bug reports and pull requests are welcome on GitHub at <https://github.com/ddoherty03/fat_fin>.
 
 
-<a id="org89f33cb"></a>
+<a id="org5af4a95"></a>
 
 # License
 
