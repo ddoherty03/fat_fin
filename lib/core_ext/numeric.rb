@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NumericExcelExtension
   refine Numeric do
     # Convert a number to an Excel date

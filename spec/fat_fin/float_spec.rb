@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FatFin
   # rubocop:disable RSpec/PredicateMatcher
   RSpec.describe Float do

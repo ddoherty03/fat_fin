@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FatFin
   RSpec.describe Numeric do
     using NumericExcelExtension

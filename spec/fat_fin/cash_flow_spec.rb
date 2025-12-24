@@ -110,7 +110,7 @@ module FatFin
         wflow = flow.within(pd)
         expect(wflow.first_date).to eq(pd.first)
         expect(wflow.size).to eq(13)
-        expect(wflow.last_date).to be <= (pd.last)
+        expect(wflow.last_date).to be <= pd.last
       end
     end
 

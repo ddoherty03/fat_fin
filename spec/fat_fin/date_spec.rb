@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FatFin
   RSpec.describe Date do
     describe "date arithmetic" do
