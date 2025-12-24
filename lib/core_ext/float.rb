@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FatFin
   module FloatExtension
     refine Float do
@@ -15,8 +17,10 @@ module FatFin
 
       # Return whether self is within abs_tol of other.
       def close_to?(other, abs_tol: 0.00000001, rel_tol: abs_tol)
-        return true if self == other.to_f
+        other = other.to_f
+        return true if self == other
         return false if infinite? || other.infinite?
+
         return false if nan? || other.nan?
 
         prec = abs_tol.precision

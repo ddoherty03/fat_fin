@@ -29,6 +29,14 @@ module FatFin
           expect(-1000020.0E-15.close_to?(-1000010.0E-15, abs_tol:)).to be_truthy
         end
       end
+
+      context 'with non-floats' do
+        it 'converts other non-float to float' do
+          expect(3.0001.close_to?(3, abs_tol: 0.001)).to be_truthy
+          expect(3.0001.close_to?(Rational(3, 1), abs_tol: 0.001)).to be_truthy
+          expect(3.0001.close_to?(Complex(3, 0), abs_tol: 0.001)).to be_truthy
+        end
+      end
     end
 
     describe '#precision' do
