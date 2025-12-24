@@ -22,7 +22,7 @@ module FatFin
               "Bond.new must supply at least maturity: parameter
                 (assumes 30-year term) or supply two
                 of maturity:, term:, and issue:"
-      elsif args[:maturity] && (args[:issue].nil? && args[:term].nil?)
+      elsif args[:maturity] && args[:issue].nil? && args[:term].nil?
         # Maturity defined, compute term and issue
         @term = 30
         @issue_date = Date.new(
@@ -30,7 +30,7 @@ module FatFin
           @maturity.month,
           @maturity.day,
         )
-      elsif args[:issue] && (args[:maturity].nil? && args[:term].nil?)
+      elsif args[:issue] && args[:maturity].nil? && args[:term].nil?
         # Issue defined, compute maturity and term
         @term = 30
         @maturity = Date.new(
@@ -38,7 +38,7 @@ module FatFin
           @issue_date.month,
           @issue_date.day,
         )
-      elsif args[:term] && (args[:maturity].nil? && args[:issue].nil?)
+      elsif args[:term] && args[:maturity].nil? && args[:issue].nil?
         # Term defined, compute maturity and issue
         # Assume issue is today
         @term = args[:term].to_i
@@ -48,14 +48,14 @@ module FatFin
           @issue_date.month,
           @issue_date.day,
         )
-      elsif (args[:maturity] && args[:term]) && !args[:issue]
+      elsif args[:maturity] && args[:term] && !args[:issue]
         # Maturity and term defined, compute issue
         @issue_date = Date.new(
           @maturity.year - @term,
           @maturity.month,
           @maturity.day,
         )
-      elsif (args[:issue] && args[:term]) && !args[:maturity]
+      elsif args[:issue] && args[:term] && !args[:maturity]
         # Issue and term defined, compute maturity
         @maturity = Date.new(
           @issue_date.year + @term,
@@ -63,7 +63,7 @@ module FatFin
           @issue_date.day,
         )
 
-      elsif (args[:issue] && args[:maturity]) && !args[:term]
+      elsif args[:issue] && args[:maturity] && !args[:term]
         # Issue and maturity defined, compute term
         @term = if @maturity.month == @issue_date.month &&
                    @maturity.day == @issue_date.day

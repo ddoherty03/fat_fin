@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FatFin
   RSpec.describe Annuity do
     let(:an) { Annuity.new(periods: 28, amount: 1.0) }
