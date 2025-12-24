@@ -1,24 +1,26 @@
-- [Installation](#orge9859da)
-- [Usage](#orgbc24849)
-  - [`CashPoint` class](#org7403eee)
-    - [Constructing a `CashPoint`  object](#orgad1cc9f)
-    - [Computing a `CashPoint`'s value on a different date with #value\_on (PV and FV)](#org728f140)
-    - [Computing the annualized growth rate between two `CashPoints` with #cagr (CAGR)](#org8703345)
-  - [`CashFlow` class](#org1f0af85)
-    - [Constructing `CashFlow` object](#orgfacfd0f)
-    - [Attributes of a `CashFlow`](#orgb4db8c2)
-    - [Computing a `CashFlow`'s value on a different date with `#value_on` (NPV)](#orgb5d392a)
-    - [Computing a `CashFlow`'s internal rate of return with `#irr` (IRR)](#org6145cf3)
-    - [Computing a `CashFlow`'s a modified internal rate of Return with `#mirr` (MIRR aka MWIRR)](#orgb682b69)
-    - [Using Non-Standard Compounding](#org6810bf6)
-    - [Subsetting `CashFlow` with `#within(period)`](#org9a8c826)
-- [Development](#org1662eed)
-- [Contributing](#org38e2e2f)
-- [License](#org211b5ee)
+- [Installation](#orga691b57)
+- [Version](#org30dd7fc)
+- [Usage](#org3cc9421)
+  - [`CashPoint` class](#org19d5d4d)
+    - [Constructing a `CashPoint`  object](#org7c142cb)
+    - [Computing a `CashPoint`'s value on a different date with #value\_on (PV and FV)](#orga9421c3)
+    - [Computing the annualized growth rate between two `CashPoints` with #cagr (CAGR)](#org42774a1)
+  - [`CashFlow` class](#orgab02c3f)
+    - [Constructing `CashFlow` object](#orgfa9d4cb)
+    - [Attributes of a `CashFlow`](#org6deebc0)
+    - [Computing a `CashFlow`'s value on a different date with `#value_on` (NPV)](#orge1968f5)
+    - [Computing a `CashFlow`'s internal rate of return with `#irr` (IRR)](#org41b9ed7)
+    - [Computing a `CashFlow`'s a modified internal rate of Return with `#mirr` (MIRR aka MWIRR)](#orgfeb1003)
+    - [Using Non-Standard Compounding](#orgefe980a)
+    - [Subsetting `CashFlow` with `#within(period)`](#orge203b2b)
+- [Development](#org026a393)
+- [Contributing](#org36a71a3)
+- [License](#org72a3b05)
+
+[![CI](https://github.com/ddoherty03/fat_fin/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/ddoherty03/fat_fin/actions/workflows/main.yml)
 
 
-
-<a id="orge9859da"></a>
+<a id="orga691b57"></a>
 
 # Installation
 
@@ -35,19 +37,32 @@ $ gem install fat_fin
 ```
 
 
-<a id="orgbc24849"></a>
+<a id="org30dd7fc"></a>
+
+# Version
+
+```ruby
+"Current version is: #{FatFin::VERSION}"
+```
+
+```
+Current version is: 0.2.1
+```
+
+
+<a id="org3cc9421"></a>
 
 # Usage
 
 
-<a id="org7403eee"></a>
+<a id="org19d5d4d"></a>
 
 ## `CashPoint` class
 
 This gem, `fat_fin`, defines classes for dealing with certain financial calculations involving the time-value of money. It's base class is `CashPoint` which represents a quantity of money tied to a particular date.
 
 
-<a id="orgad1cc9f"></a>
+<a id="org7c142cb"></a>
 
 ### Constructing a `CashPoint`  object
 
@@ -58,13 +73,13 @@ cp1 = FatFin::CashPoint.new(25_000.00, date: '2021-04-18')
 ```
 
 ```
-#<FatFin::CashPoint:0x00007f11a01624a8 @amount=25000.0, @date=Sun, 18 Apr 2021>
+#<FatFin::CashPoint:0x00007f336090e760 @amount=25000.0, @date=Sun, 18 Apr 2021>
 ```
 
 The value for the `date` parameter can be a string parseable as a date with `Date.parse`, a Date object, or any object that responds to the `#to_date` method, including `Time` and `DateTime`.
 
 
-<a id="org728f140"></a>
+<a id="orga9421c3"></a>
 
 ### Computing a `CashPoint`'s value on a different date with #value\_on (PV and FV)
 
@@ -128,20 +143,34 @@ Besides varying the valuation date and the rate used, the `#value_on` method als
 | 33,500.00 | 34,568.07 | 34,835.92 | 34,929.51 | 34,977.16 | 35,025.40 | 35,074.24 | 35,123.69 |
 ```
 
-The frequency must evenly divide 12:
+The frequency must evenly divide 12, otherwise an `ArgumentError` will be raised:
 
 ```ruby
 cp1.value_on('2024-09-12', freq: 5)
 ```
 
 ```
-=> false
-ArgumentError: Frequency (5) must be a divisor of 12 or :cont. (ArgumentError)
+/home/ded/src/fat_fin/lib/fat_fin/cash_point.rb:58:in 'FatFin::CashPoint#value_on': Frequency (5) must be a divisor of 12 or :cont. (ArgumentError)
 
-      raise ArgumentError, "Frequency (#{freq}) must be a divisor of 12 or :cont." unless valid_freq?(freq)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-from /home/ded/src/fat_fin/lib/fat_fin/cash_point.rb:58:in 'FatFin::CashPoint#value_on'
-:org_babel_ruby_eoe
+......
+^^^^^^
+	from (irb):49:in '<main>'
+	from <internal:kernel>:168:in 'Kernel#loop'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/irb-1.15.3/exe/irb:9:in '<top (required)>'
+	from /home/ded/.rbenv/versions/3.4.1/bin/irb:25:in 'Kernel#load'
+	from /home/ded/.rbenv/versions/3.4.1/bin/irb:25:in '<top (required)>'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli/exec.rb:59:in 'Kernel.load'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli/exec.rb:59:in 'Bundler::CLI::Exec#kernel_load'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli/exec.rb:23:in 'Bundler::CLI::Exec#run'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli.rb:456:in 'Bundler::CLI#exec'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor/command.rb:28:in 'Bundler::Thor::Command#run'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor/invocation.rb:127:in 'Bundler::Thor::Invocation#invoke_command'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor.rb:538:in 'Bundler::Thor.dispatch'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli.rb:35:in 'Bundler::CLI.dispatch'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/vendor/thor/lib/thor/base.rb:584:in 'Bundler::Thor::Base::ClassMethods#start'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/lib/bundler/cli.rb:29:in 'Bundler::CLI.start'
+	from /home/ded/.rbenv/versions/3.4.1/lib/ruby/gems/3.4.0/gems/bundler-2.7.2/exe/bundle:28:in 'block in <top (required)>'
+	... 4 levels...
 ```
 
 But what about the other two frequencies, 0 and :cont? A frequency of 0 is taken as a request to use simple interest. That means that not only does interest *not* compound yearly nor many times a year, but that it *does not compound at all*. Simple interest of 10% for three years amounts to 30% (10% \* 3), while the same interest compounded annually works out closer to 33.1% ($(1 + 0.1)^3 = 1.1^3 = 1.331$)
@@ -149,7 +178,7 @@ But what about the other two frequencies, 0 and :cont? A frequency of 0 is taken
 As for the special frequency represented by the symbol `:cont`, it goes to the opposite extreme: compounding continuously. Though compounding 12 times per year results in a higher rate than compounding 2 times per year, more frequent compounding settles to a limit represented by the exponential function. That is, compounding a 10% annual rate continuously for 3 years works out to around 34.986%, given by the formula $e^{rt}$ where $r$ is the annual interest rate and $t$ is the number of years interest: $e^{(0.1 * 3)} = e^{(0.3)} = 1.34985880758$.
 
 
-<a id="org8703345"></a>
+<a id="org42774a1"></a>
 
 ### Computing the annualized growth rate between two `CashPoints` with #cagr (CAGR)
 
@@ -184,14 +213,14 @@ results
 Had we started with only 15\_000 two years earlier, the CAGR would have been a very favorable 29%, but it can go the other way too: had we started with 29\_000, it would indicate a negative growth of over 7%.
 
 
-<a id="org1f0af85"></a>
+<a id="orgab02c3f"></a>
 
 ## `CashFlow` class
 
 While the `CashPoint` class represents a single value at a single point of time, sometimes we want to analyze a whole sequence of `CashPoints`, and this is what the `CashFlow` class provides.
 
 
-<a id="orgfacfd0f"></a>
+<a id="orgfa9d4cb"></a>
 
 ### Constructing `CashFlow` object
 
@@ -254,7 +283,7 @@ tab
 ```
 
 
-<a id="orgb4db8c2"></a>
+<a id="org6deebc0"></a>
 
 ### Attributes of a `CashFlow`
 
@@ -299,9 +328,11 @@ tab
     22
     ```
 
-4.  Extracting the Dates, Values and CashPoints
+4.  Extracting the Dates, Amount, and CashPoints
 
-    You may want to extract the dates, values, or individual `CashPoint` objects:
+    You may want to extract the dates, amounts, or individual `CashPoint` objects.
+    
+    The dates:
     
     ```ruby
     flow.dates.map { |d| [d.iso] }
@@ -332,6 +363,8 @@ tab
     | 2023-11-15 |
     ```
     
+    The amounts:
+    
     ```ruby
     flow.amounts.map { |d| [d] }
     ```
@@ -360,9 +393,48 @@ tab
     |   2000.0 |
     |  15000.0 |
     ```
+    
+    The ~CashPoint~s:
+    
+    ```ruby
+    results = []
+    results << ['Date', 'Point']
+    results << nil
+    flow.cash_points.each do |p|
+      results << [p.date.iso, p.inspect]
+    end
+    results
+    ```
+    
+    ```
+    | Date       | Point                                                                            |
+    |------------+----------------------------------------------------------------------------------|
+    | 2022-01-15 | #<FatFin::CashPoint:0x00007f33603bb268 @amount=-40000.0, @date=Sat, 15 Jan 2022> |
+    | 2022-02-15 | #<FatFin::CashPoint:0x00007f33602aad60 @amount=2000.0, @date=Tue, 15 Feb 2022>   |
+    | 2022-03-15 | #<FatFin::CashPoint:0x00007f33602aaae0 @amount=2000.0, @date=Tue, 15 Mar 2022>   |
+    | 2022-04-15 | #<FatFin::CashPoint:0x00007f33602aa978 @amount=2000.0, @date=Fri, 15 Apr 2022>   |
+    | 2022-05-15 | #<FatFin::CashPoint:0x00007f33602aa900 @amount=2000.0, @date=Sun, 15 May 2022>   |
+    | 2022-06-15 | #<FatFin::CashPoint:0x00007f33602aa888 @amount=2000.0, @date=Wed, 15 Jun 2022>   |
+    | 2022-07-15 | #<FatFin::CashPoint:0x00007f33602aa810 @amount=2000.0, @date=Fri, 15 Jul 2022>   |
+    | 2022-08-15 | #<FatFin::CashPoint:0x00007f33602aa798 @amount=2000.0, @date=Mon, 15 Aug 2022>   |
+    | 2022-09-15 | #<FatFin::CashPoint:0x00007f33602aa720 @amount=2000.0, @date=Thu, 15 Sep 2022>   |
+    | 2022-10-15 | #<FatFin::CashPoint:0x00007f33602aa6a8 @amount=2000.0, @date=Sat, 15 Oct 2022>   |
+    | 2022-11-15 | #<FatFin::CashPoint:0x00007f33602aa568 @amount=2000.0, @date=Tue, 15 Nov 2022>   |
+    | 2022-12-15 | #<FatFin::CashPoint:0x00007f33602aa428 @amount=2000.0, @date=Thu, 15 Dec 2022>   |
+    | 2023-01-15 | #<FatFin::CashPoint:0x00007f33602aa108 @amount=2000.0, @date=Sun, 15 Jan 2023>   |
+    | 2023-02-15 | #<FatFin::CashPoint:0x00007f33602aa090 @amount=2000.0, @date=Wed, 15 Feb 2023>   |
+    | 2023-03-15 | #<FatFin::CashPoint:0x00007f33602aa018 @amount=2000.0, @date=Wed, 15 Mar 2023>   |
+    | 2023-04-15 | #<FatFin::CashPoint:0x00007f33602a9fa0 @amount=2000.0, @date=Sat, 15 Apr 2023>   |
+    | 2023-05-15 | #<FatFin::CashPoint:0x00007f33602a9f28 @amount=2000.0, @date=Mon, 15 May 2023>   |
+    | 2023-06-15 | #<FatFin::CashPoint:0x00007f33602a9eb0 @amount=2000.0, @date=Thu, 15 Jun 2023>   |
+    | 2023-07-15 | #<FatFin::CashPoint:0x00007f33603baea8 @amount=-3000.0, @date=Sat, 15 Jul 2023>  |
+    | 2023-08-15 | #<FatFin::CashPoint:0x00007f33602a9c58 @amount=2000.0, @date=Tue, 15 Aug 2023>   |
+    | 2023-09-15 | #<FatFin::CashPoint:0x00007f33602a9bb8 @amount=2000.0, @date=Fri, 15 Sep 2023>   |
+    | 2023-11-15 | #<FatFin::CashPoint:0x00007f33608aa148 @amount=15000.0, @date=Wed, 15 Nov 2023>  |
+    ```
 
 
-<a id="orgb5d392a"></a>
+<a id="orge1968f5"></a>
 
 ### Computing a `CashFlow`'s value on a different date with `#value_on` (NPV)
 
@@ -421,7 +493,7 @@ flow.value_on('2019-01-01', rate: 0.05, freq: :cont)
 ```
 
 
-<a id="org6145cf3"></a>
+<a id="org41b9ed7"></a>
 
 ### Computing a `CashFlow`'s internal rate of return with `#irr` (IRR)
 
@@ -442,7 +514,6 @@ flow.irr(verbose: true)
 ```
 
 ```
-=> false
 Newton-Raphson search (eps = 1.0e-07):
 ------------------------------
 Iter: 1, Guess: 0.12092767; NPV: 4206.386526984578; NPV': -45461.666615201437
@@ -450,8 +521,6 @@ Iter: 2, Guess: 0.21345368; NPV: 697.048906222535; NPV': -35056.155521122069
 Iter: 3, Guess: 0.23333746; NPV: 24.591008237110; NPV': -33189.475299724581
 Iter: 4, Guess: 0.23407839; NPV: 0.032366772653; NPV': -33122.088502503138
 ------------------------------
-=> 0.23407936516476974
-:org_babel_ruby_eoe
 ```
 
 The `#irr` method uses an estimated guess for IRR based on ratio of inflows to outflows over the period of this CashFlow., as the initial guess, but you can supply a different one with the `guess:` parameter:
@@ -462,7 +531,6 @@ flow.irr(guess: 10, verbose: true)
 ```
 
 ```
-=> false
 Newton-Raphson search (eps = 1.0e-07):
 ------------------------------
 Iter: 1, Guess: 10.00000000; NPV: -31076.312232674070; NPV': 2466.934938552309
@@ -482,45 +550,67 @@ Iter: 13, Guess: 0.23103457; NPV: 101.147353737904; NPV': -33399.895368673489
 Iter: 14, Guess: 0.23406294; NPV: 0.544028052382; NPV': -33123.491890867852
 Iter: 15, Guess: 0.23407936; NPV: 0.000015873873; NPV': -33121.999771027127
 ------------------------------
-=> 0.23407936468721136
-:org_babel_ruby_eoe
 ```
 
 But be careful, a bad initial guess can cause the algorithm to spin out of control, but the `#irr` method tries to detect this and adjust the guess if it sees the guesses exploding:
 
 ```ruby
-flow.irr(guess: 7, verbose: true)
+flow.irr(guess: -7, verbose: true)
 ```
 
 ```
-=> false
 Newton-Raphson search (eps = 1.0e-07):
 ------------------------------
-Iter: 1, Guess: 7.00000000; NPV: -29649.413393915809; NPV': 3070.038462184160
-Iter: 2, Guess: 16.65766838; NPV: -32652.745358328237; NPV': 1689.984776927528
-Iter: 3, Guess: 35.97899352; NPV: -34318.471305710358; NPV': 879.290608451189
-Iter: 4, Guess: 75.00871928; NPV: -35403.915257938366; NPV': 449.240734072502
-Iter: 5, Guess: 153.81705649; NPV: -36172.392029706316; NPV': 227.656121869119
-Iter: 6, Guess: 312.70754330; NPV: -36746.160852021960; NPV': 114.867018986867
-Iter: 7, Guess: 632.60929731; NPV: -37190.985548284778; NPV': 57.809166659572
-Iter: 8, Guess: 1275.94992471; NPV: -37545.745333550229; NPV': 29.046058385040
-Iter: 9, Guess: 2568.57782058; NPV: -37835.014151742158; NPV': 14.578014028063
-Iter: 10, Guess: 5163.92545016; NPV: -38075.126132745208; NPV': 7.310919531686
-Iter: 10, Guess: 0.50000000; NPV: -7000.358124150662; NPV': -16235.005275863121
-Iter: 11, Guess: 0.06881085; NPV: 6508.871286784465; NPV': -52881.147555498756
-Iter: 12, Guess: 0.19189576; NPV: 1456.512225106533; NPV': -37214.016867361112
-Iter: 13, Guess: 0.23103457; NPV: 101.147353737904; NPV': -33399.895368673489
-Iter: 14, Guess: 0.23406294; NPV: 0.544028052382; NPV': -33123.491890867852
-Iter: 15, Guess: 0.23407936; NPV: 0.000015873873; NPV': -33121.999771027127
+NPV' turned Complex': switching to binary search algorithm ...
+Iter: 1, Guess: -7.0000000; NPV:  NaN; NPV': Complex
+Looking for binary guesses
+Binary search (eps = 1.0e-07):
 ------------------------------
-=> 0.23407936468721136
-:org_babel_ruby_eoe
+Iter: 0 Rate[-0.0500000, 1.0000000]; NPV[12928.0025498 {} -14518.3697830]
+Iter: 1 Rate[-0.0500000, 0.4750000]; NPV[12928.0025498 {} -6467.4532497]
+Iter: 2 Rate[0.2125000, 0.4750000]; NPV[729.9643166 {} -6467.4532497]
+Iter: 3 Rate[0.2125000, 0.3437500]; NPV[729.9643166 {} -3283.7478331]
+Iter: 4 Rate[0.2125000, 0.2781250]; NPV[729.9643166 {} -1399.2713992]
+Iter: 5 Rate[0.2125000, 0.2453125]; NPV[729.9643166 {} -368.0679422]
+Iter: 6 Rate[0.2289062, 0.2453125]; NPV[172.2045679 {} -368.0679422]
+Iter: 7 Rate[0.2289062, 0.2371094]; NPV[172.2045679 {} -100.0669999]
+Iter: 8 Rate[0.2330078, 0.2371094]; NPV[35.5287515 {} -100.0669999]
+Iter: 9 Rate[0.2330078, 0.2350586]; NPV[35.5287515 {} -32.4033494]
+Iter: 10 Rate[0.2340332, 0.2350586]; NPV[1.5290473 {} -32.4033494]
+Iter: 11 Rate[0.2340332, 0.2345459]; NPV[1.5290473 {} -15.4455523]
+Iter: 12 Rate[0.2340332, 0.2342896]; NPV[1.5290473 {} -6.9603543]
+Iter: 13 Rate[0.2340332, 0.2341614]; NPV[1.5290473 {} -2.7161791]
+Iter: 14 Rate[0.2340332, 0.2340973]; NPV[1.5290473 {} -0.5936973]
+Iter: 15 Rate[0.2340652, 0.2340973]; NPV[0.4676421 {} -0.5936973]
+Iter: 16 Rate[0.2340652, 0.2340813]; NPV[0.4676421 {} -0.0630358]
+Iter: 17 Rate[0.2340733, 0.2340813]; NPV[0.2023011 {} -0.0630358]
+Iter: 18 Rate[0.2340773, 0.2340813]; NPV[0.0696321 {} -0.0630358]
+Iter: 19 Rate[0.2340793, 0.2340813]; NPV[0.0032980 {} -0.0630358]
+Iter: 20 Rate[0.2340793, 0.2340803]; NPV[0.0032980 {} -0.0298689]
+Iter: 21 Rate[0.2340793, 0.2340798]; NPV[0.0032980 {} -0.0132855]
+Iter: 22 Rate[0.2340793, 0.2340795]; NPV[0.0032980 {} -0.0049937]
+Iter: 23 Rate[0.2340793, 0.2340794]; NPV[0.0032980 {} -0.0008478]
+Iter: 24 Rate[0.2340793, 0.2340794]; NPV[0.0012251 {} -0.0008478]
+Iter: 25 Rate[0.2340794, 0.2340794]; NPV[0.0001886 {} -0.0008478]
+Iter: 26 Rate[0.2340794, 0.2340794]; NPV[0.0001886 {} -0.0003296]
+Iter: 27 Rate[0.2340794, 0.2340794]; NPV[0.0001886 {} -0.0000705]
+Iter: 28 Rate[0.2340794, 0.2340794]; NPV[0.0000591 {} -0.0000705]
+Iter: 29 Rate[0.2340794, 0.2340794]; NPV[0.0000591 {} -0.0000057]
+Iter: 30 Rate[0.2340794, 0.2340794]; NPV[0.0000267 {} -0.0000057]
+Iter: 31 Rate[0.2340794, 0.2340794]; NPV[0.0000105 {} -0.0000057]
+Iter: 32 Rate[0.2340794, 0.2340794]; NPV[0.0000024 {} -0.0000057]
+Iter: 33 Rate[0.2340794, 0.2340794]; NPV[0.0000024 {} -0.0000017]
+Iter: 34 Rate[0.2340794, 0.2340794]; NPV[0.0000004 {} -0.0000017]
+Iter: 35 Rate[0.2340794, 0.2340794]; NPV[0.0000004 {} -0.0000007]
+Iter: 36 Rate[0.2340794, 0.2340794]; NPV[0.0000004 {} -0.0000002]
+NPV close enough to zero
+------------------------------
 ```
 
-This initial guess of 7 caused the iterations to make no progress towards finding a solution. When the algorithm detects that the guesses are going out of control and that the initial guess was not close to the default, it resets it to the default guess and starts over. In this case it was able to recover and get the right answer.
+This initial guess of -7 caused the iterations to make no progress towards finding a solution. When the algorithm detects that the guesses are going out of control and that the initial guess was not close to the default, it resets it to the default guess and starts over. In this case it was able to recover and get the right answer.
 
 
-<a id="orgb682b69"></a>
+<a id="orgfeb1003"></a>
 
 ### Computing a `CashFlow`'s a modified internal rate of Return with `#mirr` (MIRR aka MWIRR)
 
@@ -533,13 +623,10 @@ flow.mirr(earn_rate: 0.05, borrow_rate: 0.07, verbose: true)
 ```
 
 ```
-=> false
 FV of Positive Flow at earn rate (0.05): 54893.43158227642
 PV of Negative Flow at borrow rate (0.07): 42710.47613751121
 Years from first to last flow: 1.8316221765913758
 Modified internal rate of return: 0.14683893480678378
-=> 0.14683893480678378
-:org_babel_ruby_eoe
 ```
 
 The `earn_rate` defaults to 5% and the `borrow_rate` defaults to 7% as in the example, but if your using a credit card to borrow, you will surely want to supply better values:
@@ -549,17 +636,14 @@ flow.mirr(earn_rate: 0.05, borrow_rate: 0.21, verbose: true)
 ```
 
 ```
-=> false
 FV of Positive Flow at earn rate (0.05): 54893.43158227642
 PV of Negative Flow at borrow rate (0.21): 42253.944402704736
 Years from first to last flow: 1.8316221765913758
 Modified internal rate of return: 0.15358746594066242
-=> 0.15358746594066242
-:org_babel_ruby_eoe
 ```
 
 
-<a id="org6810bf6"></a>
+<a id="orgefe980a"></a>
 
 ### Using Non-Standard Compounding
 
@@ -572,7 +656,6 @@ flow.irr(freq: :cont, verbose: true)
 ```
 
 ```
-=> false
 Newton-Raphson search (eps = 1.0e-07):
 ------------------------------
 Iter: 1, Guess: 0.12092767; NPV: 3891.325426358200; NPV': -46309.151771020181
@@ -580,8 +663,6 @@ Iter: 2, Guess: 0.20495697; NPV: 220.246951409757; NPV': -41180.328780482501
 Iter: 3, Guess: 0.21030532; NPV: 0.814155074298; NPV': -40876.303848376207
 Iter: 4, Guess: 0.21032524; NPV: 0.000011227936; NPV': -40875.176412291505
 ------------------------------
-=> 0.21032523851027085
-:org_babel_ruby_eoe
 ```
 
 Or, egad, simple interest:
@@ -591,7 +672,6 @@ flow.irr(freq: 0, verbose: true)
 ```
 
 ```
-=> false
 Newton-Raphson search (eps = 1.0e-07):
 ------------------------------
 Iter: 1, Guess: 0.12092767; NPV: 4318.574071153786; NPV': 81713.620972333301
@@ -737,12 +817,10 @@ Iter: 35 Rate[0.2433234, 0.2433234]; NPV[0.0000007 {} -0.0000002]
 Iter: 36 Rate[0.2433234, 0.2433234]; NPV[0.0000002 {} -0.0000002]
 NPV close enough to zero
 ------------------------------
-=> 0.24332340405344438
-:org_babel_ruby_eoe
 ```
 
 
-<a id="org9a8c826"></a>
+<a id="orge203b2b"></a>
 
 ### Subsetting `CashFlow` with `#within(period)`
 
@@ -805,7 +883,7 @@ tab
 It returns a new CashFlow that narrows this CashFlow to the given period. All CashPoints before the beginning of the period are rolled up into a single CashPoint having a date of the beginning of the period and an amount that represents their value\_on that date. All the CashPoints that fall within the period are retained and any CashPoints that are beyond the last date of the period are dropped.
 
 
-<a id="org1662eed"></a>
+<a id="org026a393"></a>
 
 # Development
 
@@ -814,14 +892,14 @@ After checking out the repo, run \`bin/setup\` to install dependencies. Then, ru
 To install this gem onto your local machine, run \`bundle exec rake install\`. To release a new version, update the version number in \`version.rb\`, and then run \`bundle exec rake release\`, which will create a git tag for the version, push git commits and the created tag, and push the \`.gem\` file to [rubygems.org](<https://rubygems.org>).
 
 
-<a id="org38e2e2f"></a>
+<a id="org36a71a3"></a>
 
 # Contributing
 
 Bug reports and pull requests are welcome on GitHub at <https://github.com/ddoherty03/fat_fin>.
 
 
-<a id="org211b5ee"></a>
+<a id="org72a3b05"></a>
 
 # License
 
