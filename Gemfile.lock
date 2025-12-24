@@ -1,104 +1,147 @@
+GIT
+  remote: https://github.com/ddoherty03/rubocop-ddoherty.git
+  revision: 6b28e9614f18f94b684179c488acca8ac6cabdc6
+  branch: master
+  specs:
+    rubocop-ddoherty (0.1.2)
+      rubocop-performance (~> 1.0)
+      rubocop-rake (>= 0.7)
+      rubocop-rspec (~> 3.0)
+      rubocop-shopify (~> 2.0)
+
 PATH
   remote: .
   specs:
     fat_fin (0.2.1)
-      fat_core (>= 5.1.0)
-      fat_period
+      fat_period (~> 3.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.2.1)
+    activesupport (8.1.1)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
       connection_pool (>= 2.2.5)
       drb
       i18n (>= 1.6, < 2)
+      json
       logger (>= 1.4.2)
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
-    ast (2.4.2)
-    base64 (0.2.0)
-    bigdecimal (3.1.8)
-    concurrent-ruby (1.3.4)
-    connection_pool (2.4.1)
+      uri (>= 0.13.1)
+    ast (2.4.3)
+    base64 (0.3.0)
+    bigdecimal (3.3.1)
+    concurrent-ruby (1.3.5)
+    connection_pool (3.0.1)
     damerau-levenshtein (1.3.3)
-    debug (1.9.2)
+    date (3.5.0)
+    debug (1.11.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
-    diff-lcs (1.5.1)
-    drb (2.2.1)
-    fat_core (5.4.0)
+    diff-lcs (1.6.2)
+    drb (2.2.3)
+    erb (6.0.0)
+    fat_core (7.1.3)
       activesupport
       damerau-levenshtein
-    fat_period (1.4.0)
-      fat_core (>= 4.8.3)
-    i18n (1.14.5)
+      ostruct
+      stringio (>= 3.1.2)
+    fat_date (0.1.4)
+      activesupport
+      fat_core
+    fat_period (3.0.0)
+      fat_core (>= 6.0)
+      fat_date
+    gem_docs (0.2.0)
+      rake
+      yard
+    i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    io-console (0.7.2)
-    irb (1.14.1)
+    io-console (0.8.1)
+    irb (1.15.3)
+      pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.7.2)
-    language_server-protocol (3.17.0.3)
-    logger (1.6.1)
-    minitest (5.25.1)
-    parallel (1.26.3)
-    parser (3.3.5.0)
+    json (2.17.1)
+    language_server-protocol (3.17.0.5)
+    lint_roller (1.1.0)
+    logger (1.7.0)
+    minitest (5.26.2)
+    ostruct (0.6.3)
+    parallel (1.27.0)
+    parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
-    psych (5.1.2)
+    pp (0.6.3)
+      prettyprint
+    prettyprint (0.2.0)
+    prism (1.6.0)
+    psych (5.2.6)
+      date
       stringio
     racc (1.8.1)
     rainbow (3.1.1)
-    rake (13.2.1)
-    rdoc (6.7.0)
+    rake (13.3.1)
+    rdoc (6.16.1)
+      erb
       psych (>= 4.0.0)
-    regexp_parser (2.9.2)
-    reline (0.5.10)
+      tsort
+    regexp_parser (2.11.3)
+    reline (0.6.3)
       io-console (~> 0.5)
-    rspec (3.13.0)
+    rspec (3.13.2)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
       rspec-mocks (~> 3.13.0)
-    rspec-core (3.13.1)
+    rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
-    rspec-expectations (3.13.2)
+    rspec-expectations (3.13.5)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-mocks (3.13.1)
+    rspec-mocks (3.13.7)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-support (3.13.1)
-    rubocop (1.66.1)
+    rspec-support (3.13.6)
+    rubocop (1.81.7)
       json (~> 2.3)
-      language_server-protocol (>= 3.17.0)
+      language_server-protocol (~> 3.17.0.2)
+      lint_roller (~> 1.1.0)
       parallel (~> 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 2.4, < 3.0)
-      rubocop-ast (>= 1.32.2, < 2.0)
+      regexp_parser (>= 2.9.3, < 3.0)
+      rubocop-ast (>= 1.47.1, < 2.0)
       ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.32.3)
-      parser (>= 3.3.1.0)
-    rubocop-performance (1.21.0)
-      rubocop (>= 1.48.1, < 2.0)
-      rubocop-ast (>= 1.31.1, < 2.0)
-    rubocop-rake (0.6.0)
-      rubocop (~> 1.0)
-    rubocop-rspec (3.0.5)
-      rubocop (~> 1.61)
-    rubocop-shopify (2.15.1)
-      rubocop (~> 1.51)
+      unicode-display_width (>= 2.4.0, < 4.0)
+    rubocop-ast (1.48.0)
+      parser (>= 3.3.7.2)
+      prism (~> 1.4)
+    rubocop-performance (1.26.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.75.0, < 2.0)
+      rubocop-ast (>= 1.47.1, < 2.0)
+    rubocop-rake (0.7.1)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.72.1)
+    rubocop-rspec (3.8.0)
+      lint_roller (~> 1.1)
+      rubocop (~> 1.81)
+    rubocop-shopify (2.18.0)
+      rubocop (~> 1.62)
     ruby-progressbar (1.13.0)
-    securerandom (0.3.1)
-    stringio (3.1.1)
+    securerandom (0.4.1)
+    stringio (3.1.9)
+    tsort (0.2.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    unicode-display_width (2.5.0)
+    unicode-display_width (3.2.0)
+      unicode-emoji (~> 4.1)
+    unicode-emoji (4.1.0)
+    uri (1.1.1)
+    yard (0.9.38)
 
 PLATFORMS
   ruby
@@ -107,13 +150,11 @@ PLATFORMS
 DEPENDENCIES
   debug
   fat_fin!
+  gem_docs (>= 0.2.0)
   rake (~> 13.0)
   rspec (~> 3.0)
-  rubocop (~> 1.21)
-  rubocop-performance
-  rubocop-rake
-  rubocop-rspec
-  rubocop-shopify
+  rubocop
+  rubocop-ddoherty!
 
 BUNDLED WITH
-   2.5.18
+   2.7.2
